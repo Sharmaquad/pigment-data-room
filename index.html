@@ -55,8 +55,16 @@
   header.masthead{
     padding:44px 28px 28px; border-bottom:1px solid var(--border);
     background: radial-gradient(1100px 220px at 12% -40%, var(--accent-soft), transparent 60%), var(--surface);
+    position:relative;
   }
   .masthead-inner{ max-width:1180px; margin:0 auto; }
+  #logoutBtn{
+    position:absolute; top:24px; right:28px;
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.04em;
+    background:transparent; border:1px solid var(--border); color:var(--ink-2);
+    padding:7px 14px; border-radius:8px; cursor:pointer;
+  }
+  #logoutBtn:hover{ background:var(--surface-2); color:var(--ink); }
   .eyebrow{ font-family:var(--font-mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); font-weight:600; margin:0 0 14px; display:flex; align-items:center; gap:10px; }
   .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:var(--accent); }
   h1{ font-family:var(--font-display); font-weight:600; font-size:34px; line-height:1.15; margin:0 0 12px; text-wrap:balance; letter-spacing:-0.01em; }
@@ -186,6 +194,7 @@
 <!-- ============================================================ -->
 <div id="appRoot" hidden>
   <header class="masthead">
+    <button id="logoutBtn" type="button">Log out</button>
     <div class="masthead-inner">
       <p class="eyebrow"><span class="dot"></span>Data Room &middot; Pigment Skin &amp; Hair Clinic</p>
       <h1>Everything the new website needs, in one place.</h1>
@@ -220,7 +229,7 @@ import {
   getStorage, ref, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 import {
-  getAuth, signInAnonymously, onAuthStateChanged
+  getAuth, signInAnonymously, onAuthStateChanged, signOut
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -284,6 +293,13 @@ async function attemptUnlock(){
 }
 pwBtn.addEventListener('click', attemptUnlock);
 pwInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') attemptUnlock(); });
+
+const logoutBtn = document.getElementById('logoutBtn');
+logoutBtn.addEventListener('click', async ()=>{
+  await signOut(auth);
+  pwInput.value = '';
+  location.reload();
+});
 
 let booted = false;
 onAuthStateChanged(auth, (user)=>{
