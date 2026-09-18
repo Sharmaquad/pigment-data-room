@@ -334,16 +334,99 @@ onAuthStateChanged(auth, (user)=>{
 // ============================================================
 // APP DATA / DOM helpers (shared across all tabs)
 // ============================================================
+// Structure decided against the real live site nav (pigmentclinics.in Services
+// menu: Hair > Hair Reduction/Hair Fall, Skin > Pigmentation/Acne Scars/Skin
+// Rejuvenation/Skin Tags/Anti-Ageing) plus Oliva's 4-category pattern
+// (Hair / Skin / Aesthetics / Body & Wellness) applied to the clinic's own
+// Treatment Audit (29 confirmed "Yes" items). standaloneUrl:true = gets its
+// own page; standaloneUrl:false = folded into bundledInto's page as a
+// labeled technique section, not a separate URL. Category and URL structure
+// are fixed here (an IA decision), not per-record clinic input.
+const TREATMENT_CATEGORIES = [
+  {id:'hair', name:'Hair'},
+  {id:'skin', name:'Skin'},
+  {id:'aesthetics', name:'Aesthetics'},
+  {id:'body', name:'Body & Wellness'},
+];
+// Full Oliva-parity structure (owner decision: match Oliva's granularity,
+// not a bundled/consolidated set). auditStatus cross-references the
+// clinic's own Treatment Audit: 'yes' = confirmed offered, safe to write
+// real content; 'no' = confirmed NOT offered (exclude from content/nav
+// until the clinic changes its answer); 'gap' = a technique-level variant
+// Oliva lists that the Audit never asked about separately — build the page,
+// but flag it as needing clinic confirmation before anything goes live.
+// A few of Oliva's names are their own trademarks (InstaGlow, Glowtox,
+// GeneIQ) — those are renamed to generic equivalents below, or excluded
+// (GeneIQ, a proprietary Oliva diagnostic product) rather than copied.
 let TREATMENTS = [
-  {id:'laser-hair-removal', name:'Laser Hair Removal'},
-  {id:'acne-treatment', name:'Acne Treatment'},
-  {id:'pigmentation-treatment', name:'Pigmentation Treatment'},
-  {id:'hair-fall-treatment', name:'Hair Fall Treatment'},
-  {id:'prp-hair-treatment', name:'PRP Hair Treatment'},
-  {id:'botox-anti-aging', name:'Botox / Anti-Aging'},
-  {id:'hydrafacial', name:'HydraFacial'},
-  {id:'chemical-peel', name:'Chemical Peel'},
-  {id:'skin-tags', name:'Skin Tag Removal'},
+  // ---------------- HAIR ----------------
+  {id:'hair-fall-treatment', name:'Hair Fall Treatment', category:'hair', standaloneUrl:true, auditStatus:'yes'},
+  {id:'laser-hair-removal', name:'Hair Reduction (Laser Hair Removal)', category:'hair', standaloneUrl:true, auditStatus:'yes'},
+  {id:'hair-reduction-upper-lip', name:'Upper Lip Hair Reduction', category:'hair', standaloneUrl:true, auditStatus:'gap'},
+  {id:'hair-reduction-facial', name:'Facial Hair Reduction', category:'hair', standaloneUrl:true, auditStatus:'gap'},
+  {id:'hair-reduction-underarm', name:'Underarm Hair Reduction', category:'hair', standaloneUrl:true, auditStatus:'gap'},
+  {id:'hair-reduction-bikini', name:'Bikini Hair Reduction', category:'hair', standaloneUrl:true, auditStatus:'gap'},
+  {id:'hair-reduction-leg', name:'Leg Hair Reduction', category:'hair', standaloneUrl:true, auditStatus:'gap'},
+  {id:'beard-shaping', name:'Laser Beard Shaping', category:'hair', standaloneUrl:true, auditStatus:'gap'},
+  {id:'prp-hair-treatment', name:'PRP Hair Treatment', category:'hair', standaloneUrl:true, auditStatus:'yes'},
+  {id:'hair-transplant', name:'Hair Transplant', category:'hair', standaloneUrl:true, auditStatus:'no', note:'Audit says NOT offered — do not write real content or publish until this changes'},
+  {id:'exosome-hair-treatment', name:'Exosome Hair Treatment', category:'hair', standaloneUrl:true, auditStatus:'yes', note:'Maps to Audit item "Exosome therapy"'},
+  {id:'hair-thread-treatment', name:'Hair Thread Treatment (Scalp PDO Threads)', category:'hair', standaloneUrl:true, auditStatus:'gap'},
+  {id:'qr678-hair-treatment', name:'QR678 Hair Treatment', category:'hair', standaloneUrl:true, auditStatus:'yes'},
+  // ---------------- SKIN ----------------
+  {id:'acne-treatment', name:'Acne Treatment (Active Acne / Pimples)', category:'skin', standaloneUrl:true, auditStatus:'yes'},
+  {id:'acne-scar-treatment', name:'Acne Scar Treatment', category:'skin', standaloneUrl:true, auditStatus:'yes', note:'Maps to Audit item "Post-acne marks/scars"'},
+  {id:'laser-skin-resurfacing', name:'Laser Skin Resurfacing', category:'skin', standaloneUrl:true, auditStatus:'yes', note:'Maps to Audit item "Skin resurfacing/repair"'},
+  {id:'mnrf-treatment', name:'MNRF (Microneedling RF) Treatment', category:'skin', standaloneUrl:true, auditStatus:'yes', note:'Maps to Audit item "Microneedling"'},
+  {id:'subcision-treatment', name:'Subcision for Acne Scars', category:'skin', standaloneUrl:true, auditStatus:'gap'},
+  {id:'chemical-peel', name:'Chemical Peel', category:'skin', standaloneUrl:true, auditStatus:'yes'},
+  {id:'skin-lightening-treatment', name:'Skin Lightening & Brightening Treatment', category:'skin', standaloneUrl:true, auditStatus:'yes', note:'Maps to Audit item "Skin brightening"'},
+  {id:'laser-toning', name:'Laser Toning', category:'skin', standaloneUrl:true, auditStatus:'yes'},
+  {id:'dermafrac-treatment', name:'DermaFrac Treatment', category:'skin', standaloneUrl:true, auditStatus:'gap'},
+  {id:'skin-booster-treatment', name:'Skin Booster Treatment (PDRN & Similar)', category:'skin', standaloneUrl:true, auditStatus:'gap'},
+  {id:'hydrafacial', name:'HydraFacial', category:'skin', standaloneUrl:true, auditStatus:'yes'},
+  {id:'medifacial-treatment', name:'Medifacial', category:'skin', standaloneUrl:true, auditStatus:'gap'},
+  {id:'carbon-laser-facial', name:'Carbon Laser Facial', category:'skin', standaloneUrl:true, auditStatus:'gap'},
+  {id:'hollywood-facial', name:'Hollywood-Style Laser Facial', category:'skin', standaloneUrl:true, auditStatus:'gap', note:'Renamed from Oliva’s "Hollywood Rejuvenation" — generic technique, not their trademark, but confirm clinic actually offers this exact protocol'},
+  {id:'fire-ice-facial', name:'Fire & Ice Facial', category:'skin', standaloneUrl:true, auditStatus:'gap'},
+  {id:'foaming-enzyme-facial', name:'Foaming Enzyme Facial', category:'skin', standaloneUrl:true, auditStatus:'gap'},
+  {id:'hydrageneo-facial', name:'HydraGeneo Facial', category:'skin', standaloneUrl:true, auditStatus:'gap', note:'HydraGeneo is a real third-party device brand (not Oliva’s own) — confirm the clinic actually has this device before publishing'},
+  {id:'signature-glow-facial', name:'Signature Glow Facial', category:'skin', standaloneUrl:true, auditStatus:'gap', note:'Renamed — Oliva’s equivalent ("InstaGlow Rejuvenation") is their trademark, cannot be used'},
+  {id:'pigmentation-treatment', name:'Pigmentation Treatment (Hyperpigmentation)', category:'skin', standaloneUrl:true, auditStatus:'yes'},
+  {id:'melasma-treatment', name:'Melasma Treatment', category:'skin', standaloneUrl:true, auditStatus:'yes'},
+  {id:'dark-circle-treatment', name:'Dark Circle Treatment', category:'skin', standaloneUrl:true, auditStatus:'gap'},
+  {id:'depigmentation-peel', name:'Advanced Depigmentation Peel', category:'skin', standaloneUrl:true, auditStatus:'gap', note:'Generic name for a Cosmelan-style peel — "Cosmelan" is a real third-party peel brand; confirm which peel brand the clinic actually stocks before naming one'},
+  {id:'dull-skin-treatment', name:'Dull Skin Treatment', category:'skin', standaloneUrl:true, auditStatus:'gap'},
+  {id:'dark-underarm-treatment', name:'Dark Underarm Treatment', category:'skin', standaloneUrl:true, auditStatus:'gap'},
+  {id:'tan-removal-treatment', name:'Tan Removal (Face & Body)', category:'skin', standaloneUrl:true, auditStatus:'gap'},
+  {id:'scalp-refine-treatment', name:'Scalp Refine Treatment', category:'skin', standaloneUrl:true, auditStatus:'gap'},
+  {id:'tattoo-removal', name:'Tattoo Removal', category:'skin', standaloneUrl:true, auditStatus:'yes'},
+  {id:'stretch-marks-removal', name:'Stretch Marks Removal', category:'skin', standaloneUrl:true, auditStatus:'gap'},
+  {id:'mole-removal', name:'Mole Removal', category:'skin', standaloneUrl:true, auditStatus:'yes'},
+  {id:'wart-removal', name:'Wart Removal', category:'skin', standaloneUrl:true, auditStatus:'yes'},
+  {id:'skin-tags', name:'Skin Tag Removal', category:'skin', standaloneUrl:true, auditStatus:'yes'},
+  {id:'birthmark-removal', name:'Birthmark Removal', category:'skin', standaloneUrl:true, auditStatus:'yes'},
+  // ---------------- AESTHETICS ----------------
+  {id:'botox-anti-aging', name:'Anti-Ageing Treatment (Overview)', category:'aesthetics', standaloneUrl:true, auditStatus:'yes'},
+  {id:'botox-treatment', name:'Botox Treatment', category:'aesthetics', standaloneUrl:true, auditStatus:'yes'},
+  {id:'hifu-treatment', name:'HIFU (Non-Surgical Skin Tightening)', category:'aesthetics', standaloneUrl:true, auditStatus:'yes'},
+  {id:'profhilo-treatment', name:'Profhilo (Skin Bio-Remodeling)', category:'aesthetics', standaloneUrl:true, auditStatus:'gap', note:'Profhilo is a real third-party injectable brand — confirm the clinic actually stocks it'},
+  {id:'dermal-fillers', name:'Dermal Fillers', category:'aesthetics', standaloneUrl:true, auditStatus:'yes'},
+  {id:'skin-tightening-treatment', name:'Skin Tightening (Radiofrequency)', category:'aesthetics', standaloneUrl:true, auditStatus:'yes', note:'Maps to Audit item "Thermage"'},
+  {id:'chin-sculpting', name:'Chin Sculpting (Non-Surgical)', category:'aesthetics', standaloneUrl:true, auditStatus:'gap'},
+  {id:'liquid-facelift', name:'Liquid Face Lift', category:'aesthetics', standaloneUrl:true, auditStatus:'gap'},
+  {id:'micro-botox-treatment', name:'Skin-Boosting Micro-Botox Treatment', category:'aesthetics', standaloneUrl:true, auditStatus:'gap', note:'Renamed — Oliva’s equivalent ("Glowtox") is their trademark, cannot be used'},
+  {id:'collagen-stimulation-treatment', name:'Collagen Stimulation Treatment', category:'aesthetics', standaloneUrl:true, auditStatus:'yes'},
+  {id:'4d-clearlift-treatment', name:'4D Clearlift', category:'aesthetics', standaloneUrl:true, auditStatus:'yes'},
+  {id:'revlite-laser-treatment', name:'Revlite Laser (Pigmentation & Toning)', category:'aesthetics', standaloneUrl:true, auditStatus:'yes', note:'Some overlap with Laser Toning under Skin — flagged for the owner to decide whether to keep both or merge'},
+  {id:'exosome-therapy', name:'Exosome Therapy (Skin)', category:'aesthetics', standaloneUrl:true, auditStatus:'yes'},
+  // ---------------- BODY & WELLNESS ----------------
+  {id:'medical-weight-loss', name:'Medical Weight Loss', category:'body', standaloneUrl:true, auditStatus:'yes'},
+  {id:'coolsculpting', name:'Body Contouring (CoolSculpting)', category:'body', standaloneUrl:true, auditStatus:'yes'},
+  {id:'iv-wellness', name:'IV Wellness Therapy', category:'body', standaloneUrl:true, auditStatus:'yes'},
+  {id:'glp-weight-loss', name:'GLP-1 Medical Weight Loss (Injectable)', category:'body', standaloneUrl:true, auditStatus:'gap', note:'Generic clinical name (GLP-1 receptor agonist), not a brand — confirm the clinic offers this specific injectable program'},
+  {id:'inch-loss-treatment', name:'Inch Loss Treatment', category:'body', standaloneUrl:true, auditStatus:'gap'},
+  {id:'express-weight-loss', name:'Express Weight Loss Program', category:'body', standaloneUrl:true, auditStatus:'gap', note:'Overlaps with Medical Weight Loss & Inch Loss — flagged for the owner to decide whether to keep as a separate page or fold in'},
 ];
 const LOCATIONS = [
   {id:'haralur-road', name:'Haralur Road (main clinic)'},
@@ -880,59 +963,59 @@ function renderDoctor(main){
 // ============================================================
 function renderTreatments(main){
   main.appendChild(el('h2', {}, 'Treatments'));
-  main.appendChild(el('p', {class:'section-dek'}, 'One card per treatment page from the SEO Report\'s sitemap. Sessions and a real description are what\'s missing on the current site. Pricing is deliberately not published — Kosmoderma, the strongest organic performer in the keyword battle, doesn\'t publish it either, and it protects the doctor-recommendation close (the biggest lever in the whole Growth Diagnostic).'));
+  main.appendChild(el('p', {class:'section-dek'}, 'Full Oliva-parity structure: every treatment gets its own page, grouped under Hair / Skin / Aesthetics / Body & Wellness. Each card shows where it stands against your Treatment Audit — Confirmed means the Audit already says you offer it, Needs confirmation means it\'s a technique Oliva lists that your Audit never asked about separately, and Not offered means the Audit says no (don\'t publish those). Pricing is deliberately not published — Kosmoderma, the strongest organic performer in the keyword battle, doesn\'t publish it either, and it protects the doctor-recommendation close.'));
 
   const addCard = el('div', {class:'card', style:'margin-bottom:20px;'});
-  addCard.appendChild(el('label',{},'Add a new treatment (not one of the 9 above — this creates a fresh treatment record, and it becomes selectable everywhere a treatment is tagged: Before/After, Blog, FAQs)'));
+  addCard.appendChild(el('label',{},'Add a new treatment (creates a fresh treatment record, selectable everywhere a treatment is tagged: Before/After, Blog, FAQs)'));
   const addRow = el('div', {class:'btn-row'});
   const nameInput = el('input',{type:'text', placeholder:'e.g. Microneedling'});
   nameInput.style.cssText = 'flex:1;font-family:var(--font-body);font-size:14px;color:var(--ink);background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;';
   const addMsg = el('span',{class:'save-msg'},'');
-  const newCatSkin = el('input',{type:'checkbox'}); newCatSkin.style.width='auto';
-  const newCatHair = el('input',{type:'checkbox'}); newCatHair.style.width='auto';
-  const newCatWrap = el('label',{style:'display:flex;align-items:center;gap:16px;font-family:var(--font-body);text-transform:none;font-size:13px;color:var(--ink-2);white-space:nowrap;'},
-    el('span',{style:'display:flex;align-items:center;gap:6px;'}, newCatSkin, 'Skin'),
-    el('span',{style:'display:flex;align-items:center;gap:6px;'}, newCatHair, 'Hair')
-  );
+  const newCatSel = el('select',{}); newCatSel.style.cssText='font-family:var(--font-body);font-size:13px;color:var(--ink);background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;';
+  TREATMENT_CATEGORIES.forEach(c=> newCatSel.appendChild(el('option',{value:c.id}, c.name)));
   addRow.appendChild(nameInput);
-  addRow.appendChild(newCatWrap);
+  addRow.appendChild(newCatSel);
   addRow.appendChild(el('button',{class:'btn primary', onclick: async ()=>{
     const name = nameInput.value.trim();
     if(!name){ addMsg.textContent='Enter a name first'; setTimeout(()=>addMsg.textContent='',2000); return; }
     const id = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 't'+Date.now();
     if(TREATMENTS.find(t=>t.id===id)){ addMsg.textContent='That treatment already exists'; setTimeout(()=>addMsg.textContent='',2000); return; }
-    TREATMENTS.push({id, name});
-    const category = [newCatSkin.checked && 'skin', newCatHair.checked && 'hair'].filter(Boolean);
-    const d = {name, category, origin:'human', verified:false};
+    TREATMENTS.push({id, name, category:newCatSel.value, standaloneUrl:true, auditStatus:'gap'});
+    const d = {name, origin:'human', verified:false};
     state.treatments[id] = d;
     await saveDoc('treatments', id, d);
-    nameInput.value=''; newCatSkin.checked=false; newCatHair.checked=false;
+    nameInput.value='';
     render();
   }}, '+ Add treatment'));
   addRow.appendChild(addMsg);
   addCard.appendChild(addRow);
   main.appendChild(addCard);
 
-  TREATMENTS.forEach(t=>{
+  const AUDIT_BADGE = {
+    yes: {label:'✓ Confirmed offered', style:'color:var(--good);background:var(--good22, rgba(34,197,94,.12));'},
+    gap: {label:'⚠ Needs confirmation', style:'color:var(--warn);background:rgba(234,179,8,.12);'},
+    no: {label:'✕ Not offered — do not publish', style:'color:#dc2626;background:rgba(220,38,38,.1);'},
+  };
+
+  TREATMENT_CATEGORIES.forEach(cat=>{
+    const inCat = TREATMENTS.filter(t=>t.category===cat.id);
+    if(!inCat.length) return;
+    main.appendChild(el('h3', {style:'font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin:28px 0 10px;'}, cat.name+' ('+inCat.length+')'));
+
+  inCat.forEach(t=>{
     const d = state.treatments[t.id] || {};
     const card = el('div', {class:'card'});
     const filled = ['sessionCount','description'].filter(k=>fieldFilled(d[k])).length;
     card.appendChild(el('div', {class:'card-head'}, el('h3',{}, t.name), el('span',{class:'status-pill '+sectionStatus(filled,2)}, filled+'/2 filled')));
 
-    const cat = Array.isArray(d.category) ? d.category : [];
-    const catSkin = el('input',{type:'checkbox'}); catSkin.style.width='auto'; catSkin.checked = cat.includes('skin');
-    const catHair = el('input',{type:'checkbox'}); catHair.style.width='auto'; catHair.checked = cat.includes('hair');
-    const syncCategory = ()=>{
-      d.category = [catSkin.checked && 'skin', catHair.checked && 'hair'].filter(Boolean);
-      d.verified = false;
-    };
-    catSkin.addEventListener('change', syncCategory);
-    catHair.addEventListener('change', syncCategory);
-    card.appendChild(el('label',{},'Category (a treatment can be both — e.g. Laser Hair Removal is Skin and Hair)'));
-    card.appendChild(el('div',{style:'display:flex;gap:20px;margin:-4px 0 18px;'},
-      el('label',{style:'display:flex;align-items:center;gap:6px;font-family:var(--font-body);text-transform:none;font-size:13px;color:var(--ink-2);'}, catSkin, 'Skin'),
-      el('label',{style:'display:flex;align-items:center;gap:6px;font-family:var(--font-body);text-transform:none;font-size:13px;color:var(--ink-2);'}, catHair, 'Hair')
-    ));
+    const liveAnswer = auditFor(t.id);
+    const effectiveStatus = liveAnswer ? (liveAnswer.offered==='yes' ? 'yes' : liveAnswer.offered==='no' ? 'no' : 'gap') : t.auditStatus;
+    const badge = AUDIT_BADGE[effectiveStatus] || AUDIT_BADGE.gap;
+    const badgeRow = el('div',{style:'display:flex;align-items:center;gap:10px;margin:-4px 0 14px;flex-wrap:wrap;'});
+    badgeRow.appendChild(el('span',{style:'font-size:12px;font-weight:600;padding:4px 10px;border-radius:12px;'+badge.style}, badge.label));
+    if(!liveAnswer && t.note) badgeRow.appendChild(el('span',{style:'font-size:12.5px;color:var(--ink-3);'}, t.note));
+    if(liveAnswer && liveAnswer.machine) badgeRow.appendChild(el('span',{style:'font-size:12.5px;color:var(--ink-3);'}, 'Machine: '+liveAnswer.machine));
+    card.appendChild(badgeRow);
 
     const row = el('div', {class:'field-row'});
     const c1 = el('div'); c1.appendChild(el('label',{},'Pricing note (optional — never a number; e.g. "consultation-based")')); const i1=el('input',{type:'text'}); i1.value=d.costRange||''; i1.addEventListener('input',()=>{d.costRange=i1.value; d.verified=false;}); c1.appendChild(i1);
@@ -964,6 +1047,7 @@ function renderTreatments(main){
     ));
     renderVerifyBar(card, d, 'treatments', t.id, ()=>({...d, name:t.name}));
     main.appendChild(card);
+  });
   });
 }
 
@@ -1460,103 +1544,106 @@ function render(){
 // ============================================================
 // TREATMENT AUDIT TAB
 // ============================================================
-const AUDIT_CATEGORIES = [
-  {name:'Pigmentation & marks', items:[
-    {id:'pigmentation-treatment', name:'Pigmentation treatment (general)'},
-    {id:'melasma', name:'Melasma'},
-    {id:'post-acne-marks', name:'Post-acne marks / scars'},
-    {id:'sun-damage', name:'Sun damage / photoaging'},
-    {id:'skin-brightening', name:'Skin brightening'},
-  ]},
-  {name:'Acne & resurfacing', items:[
-    {id:'acne-treatment', name:'Acne treatment (general)'},
-    {id:'chemical-peel', name:'Chemical peel'},
-    {id:'hydrafacial', name:'HydraFacial'},
-    {id:'skin-resurfacing', name:'Skin resurfacing / repair'},
-    {id:'microneedling', name:'Microneedling'},
-  ]},
-  {name:'Skin lesions & dermatosurgery', items:[
-    {id:'mole-removal', name:'Mole removal'},
-    {id:'wart-removal', name:'Wart removal'},
-    {id:'cyst-removal', name:'Cyst removal'},
-    {id:'skin-tag-removal', name:'Skin tag removal'},
-    {id:'birthmark-removal', name:'Birthmark removal'},
-    {id:'tattoo-removal', name:'Tattoo removal'},
-  ]},
-  {name:'Medical / chronic skin', items:[
-    {id:'eczema', name:'Eczema'},
-    {id:'psoriasis', name:'Psoriasis'},
-    {id:'skin-infections', name:'Skin infections (general)'},
-  ]},
-  {name:'Hair', items:[
-    {id:'hair-fall-treatment', name:'Hair fall treatment (general)'},
-    {id:'prp-hair', name:'PRP hair treatment'},
-    {id:'gfc-hair', name:'GFC hair treatment'},
-    {id:'qr678-hair', name:'QR678 hair treatment'},
-    {id:'hair-transplant', name:'Hair transplant'},
-    {id:'laser-hair-removal', name:'Laser hair removal / reduction'},
-  ]},
-  {name:'Anti-aging & injectables', items:[
-    {id:'botox', name:'Botox / anti-aging'},
-    {id:'dermal-fillers', name:'Dermal fillers'},
-    {id:'hifu', name:'HIFU (skin tightening)'},
-    {id:'thermage', name:'Thermage'},
-    {id:'collagen-stim', name:'Collagen stimulation (non-surgical tightening)'},
-    {id:'laser-toning', name:'Laser toning'},
-    {id:'exosome-therapy', name:'Exosome therapy'},
-    {id:'revlite-laser', name:'Revlite laser (pigmentation)'},
-    {id:'4d-clearlift', name:'4D Clearlift'},
-  ]},
-  {name:'Body & wellness', items:[
-    {id:'coolsculpting', name:'CoolSculpting (fat reduction)'},
-    {id:'iv-wellness', name:'IV wellness therapy'},
-    {id:'medical-weight-loss', name:'Medical weight loss'},
-  ]},
+// Maps a new (post-Oliva-parity) treatment id to the OLD, coarser audit id
+// it replaces — so an already-answered Yes/No from the original 37-item
+// audit is inherited on first view instead of appearing blank. New answers
+// are written forward under the new id; the old doc is left untouched.
+const AUDIT_ID_ALIAS = {
+  'melasma-treatment':'melasma',
+  'acne-scar-treatment':'post-acne-marks',
+  'skin-lightening-treatment':'skin-brightening',
+  'laser-skin-resurfacing':'skin-resurfacing',
+  'mnrf-treatment':'microneedling',
+  'skin-tags':'skin-tag-removal',
+  'prp-hair-treatment':'prp-hair',
+  'qr678-hair-treatment':'qr678-hair',
+  'botox-treatment':'botox',
+  'botox-anti-aging':'botox',
+  'hifu-treatment':'hifu',
+  'skin-tightening-treatment':'thermage',
+  'collagen-stimulation-treatment':'collagen-stim',
+  'revlite-laser-treatment':'revlite-laser',
+  '4d-clearlift-treatment':'4d-clearlift',
+};
+// Old audit items with no matching page in the new 64-item structure yet —
+// kept visible (not silently dropped) so any answer already given for them
+// stays editable, even though they don't have a treatment page to attach to.
+const AUDIT_ORPHANED_ITEMS = [
+  {id:'sun-damage', name:'Sun damage / photoaging', note:'no dedicated page yet — closest is Pigmentation Treatment or Anti-Ageing'},
+  {id:'cyst-removal', name:'Cyst removal', note:'no dedicated page yet — closest is Skin Tags & Growth Removal'},
+  {id:'eczema', name:'Eczema', note:'medical dermatology — deliberately kept off the public nav for now'},
+  {id:'psoriasis', name:'Psoriasis', note:'medical dermatology — deliberately kept off the public nav for now'},
+  {id:'skin-infections', name:'Skin infections (general)', note:'medical dermatology — deliberately kept off the public nav for now'},
+  {id:'gfc-hair', name:'GFC hair treatment', note:'covered as a technique inside Hair Fall Treatment, not its own page'},
 ];
+
+// Effective audit state for a treatment id: its own answer if present,
+// otherwise inherited from the old id it replaced (read-only inheritance —
+// writes always go to the new id).
+function auditFor(id){
+  if(state.audit[id]) return state.audit[id];
+  const oldId = AUDIT_ID_ALIAS[id];
+  if(oldId && state.audit[oldId]) return state.audit[oldId];
+  return null;
+}
 
 function renderAudit(main){
   main.appendChild(el('h2', {}, 'Treatment audit'));
-  main.appendChild(el('p', {class:'section-dek'}, 'Every condition/treatment seen across the competitors researched in the SEO Report. Mark Yes for anything Pigment\'s doctors already treat, even if it isn\'t on the website yet, and note the machine/device used — that becomes the selling-point detail when the page copy gets written. This is a triage list, not public content: confirmed “Yes” items become real records on the Treatments tab next.'));
+  main.appendChild(el('p', {class:'section-dek'}, 'One row per treatment page — the same 64 items on the Treatments tab. Mark Yes for anything Pigment\'s doctors already treat, even if it isn\'t written up yet, and note the machine/device used. This drives the "Confirmed / Needs confirmation / Not offered" badge on each Treatments card, live — answer here and it updates there.'));
 
+  const allIds = [...TREATMENTS.map(t=>t.id), ...AUDIT_ORPHANED_ITEMS.map(o=>o.id)];
   let yes=0, no=0, blank=0;
-  AUDIT_CATEGORIES.forEach(c=>c.items.forEach(it=>{
-    const s = state.audit[it.id]||{};
-    if(s.offered==='yes') yes++; else if(s.offered==='no') no++; else blank++;
-  }));
+  allIds.forEach(id=>{
+    const s = auditFor(id);
+    if(s && s.offered==='yes') yes++; else if(s && s.offered==='no') no++; else blank++;
+  });
   const strip = el('div', {class:'summary-strip'});
   strip.appendChild(el('div', {class:'summary-tile'}, el('div',{class:'n',style:'color:var(--good)'}, String(yes)), el('div',{class:'l'}, 'Offered — Yes')));
   strip.appendChild(el('div', {class:'summary-tile'}, el('div',{class:'n',style:'color:var(--ink-3)'}, String(no)), el('div',{class:'l'}, 'Not offered — No')));
   strip.appendChild(el('div', {class:'summary-tile'}, el('div',{class:'n',style:'color:var(--warn)'}, String(blank)), el('div',{class:'l'}, 'Still unanswered')));
   main.appendChild(strip);
 
-  AUDIT_CATEGORIES.forEach(cat=>{
+  const renderRow = (card, id, label, note)=>{
+    const inherited = auditFor(id);
+    const s = state.audit[id] || (state.audit[id] = inherited ? {offered:inherited.offered, machine:inherited.machine||''} : {offered:null, machine:''});
+    const row = el('div', {style:'display:grid;grid-template-columns:1fr auto 260px;gap:14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);'});
+    const labelWrap = el('div', {});
+    labelWrap.appendChild(el('div', {style:'font-size:14px;font-weight:500;'}, label));
+    if(note) labelWrap.appendChild(el('div', {style:'font-size:12px;color:var(--ink-3);margin-top:2px;'}, note));
+    row.appendChild(labelWrap);
+
+    const toggle = el('div', {style:'display:flex;gap:6px;'});
+    const mkBtn = (btnLabel, val, activeColor)=> el('button', {
+      style:'font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:16px;cursor:pointer;border:1px solid var(--border);background:'+(s.offered===val?activeColor+'22':'var(--surface-2)')+';color:'+(s.offered===val?activeColor:'var(--ink-2)')+';border-color:'+(s.offered===val?activeColor:'var(--border)')+';',
+      onclick: async ()=>{ s.offered = s.offered===val?null:val; await saveDoc('auditItems', id, s); render(); }
+    }, btnLabel);
+    toggle.appendChild(mkBtn('Yes','yes','var(--good)'));
+    toggle.appendChild(mkBtn('No','no','var(--ink-3)'));
+    row.appendChild(toggle);
+
+    const machine = el('input',{type:'text', placeholder:'Machine / device used (e.g. Candela GentleMax Pro)'});
+    machine.style.cssText = 'width:100%;font-family:var(--font-body);font-size:13px;color:var(--ink);background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;';
+    machine.value = s.machine || '';
+    machine.addEventListener('input', ()=>{ s.machine = machine.value; });
+    machine.addEventListener('blur', async ()=>{ await saveDoc('auditItems', id, s); });
+    row.appendChild(machine);
+
+    card.appendChild(row);
+  };
+
+  TREATMENT_CATEGORIES.forEach(cat=>{
+    const inCat = TREATMENTS.filter(t=>t.category===cat.id);
+    if(!inCat.length) return;
     main.appendChild(el('h3', {style:'font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin:24px 0 10px;'}, cat.name));
     const card = el('div', {class:'card'});
-    cat.items.forEach(it=>{
-      const s = state.audit[it.id] || (state.audit[it.id] = {offered:null, machine:''});
-      const row = el('div', {style:'display:grid;grid-template-columns:1fr auto 260px;gap:14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);'});
-      row.appendChild(el('div', {style:'font-size:14px;font-weight:500;'}, it.name));
-
-      const toggle = el('div', {style:'display:flex;gap:6px;'});
-      const mkBtn = (label, val, activeColor)=> el('button', {
-        style:'font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:16px;cursor:pointer;border:1px solid var(--border);background:'+(s.offered===val?activeColor+'22':'var(--surface-2)')+';color:'+(s.offered===val?activeColor:'var(--ink-2)')+';border-color:'+(s.offered===val?activeColor:'var(--border)')+';',
-        onclick: async ()=>{ s.offered = s.offered===val?null:val; await saveDoc('auditItems', it.id, s); render(); }
-      }, label);
-      toggle.appendChild(mkBtn('Yes','yes','var(--good)'));
-      toggle.appendChild(mkBtn('No','no','var(--ink-3)'));
-      row.appendChild(toggle);
-
-      const machine = el('input',{type:'text', placeholder:'Machine / device used (e.g. Candela GentleMax Pro)'});
-      machine.style.cssText = 'width:100%;font-family:var(--font-body);font-size:13px;color:var(--ink);background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;';
-      machine.value = s.machine || '';
-      machine.addEventListener('input', ()=>{ s.machine = machine.value; });
-      machine.addEventListener('blur', async ()=>{ await saveDoc('auditItems', it.id, s); });
-      row.appendChild(machine);
-
-      card.appendChild(row);
-    });
+    inCat.forEach(t=> renderRow(card, t.id, t.name, t.note));
     main.appendChild(card);
   });
+
+  main.appendChild(el('h3', {style:'font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin:24px 0 10px;'}, 'Other conditions — not on a page yet ('+AUDIT_ORPHANED_ITEMS.length+')'));
+  const orphanCard = el('div', {class:'card'});
+  AUDIT_ORPHANED_ITEMS.forEach(o=> renderRow(orphanCard, o.id, o.name, o.note));
+  main.appendChild(orphanCard);
 }
 
 function recordStatus(record){
