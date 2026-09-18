@@ -1337,9 +1337,21 @@ function scanForEntityLinks(text){
 // ============================================================
 // BLOG TAB
 // ============================================================
+const EXISTING_STATUS_OPTIONS = [
+  {value:'retain', label:'Retain — no changes needed'},
+  {value:'tweak', label:'Tweak — needs edits before it\'s accurate'},
+  {value:'delete', label:'Delete — flagged for removal'},
+];
+
 function renderBlog(main){
   main.appendChild(el('h2', {}, 'Blog posts'));
-  main.appendChild(el('p', {class:'section-dek'}, 'Paste a draft, tag which treatment it primarily supports, and use Analyze to find exact-name mentions of treatments, doctors, or locations worth linking on first mention. This only finds exact-phrase matches — review the rest by eye.'));
+  main.appendChild(el('p', {class:'section-dek'}, 'Paste a draft, tag which treatment it primarily supports, and use Analyze to find exact-name mentions of treatments, doctors, or locations worth linking on first mention. This only finds exact-phrase matches — review the rest by eye. Posts already live on pigmentclinics.in are tagged with the reconciliation verdict (Retain/Tweak/Delete) from the site audit — Tweak posts need the edit made and Verified again before Publish reflects it as current.'));
+
+  const existingCount = state.blog.filter(b=>b.existingStatus).length;
+  const draftCount = state.blog.length - existingCount;
+  if(existingCount || draftCount){
+    main.appendChild(el('p', {style:'font-size:12.5px;color:var(--ink-3);margin:-16px 0 20px;'}, `${existingCount} already live on the site, ${draftCount} new draft(s) not yet published.`));
+  }
 
   const card = el('div', {class:'card'});
   if(state.blog.length===0){
@@ -1347,6 +1359,22 @@ function renderBlog(main){
   }
   state.blog.forEach((b,i)=>{
     const item = el('div', {class:'list-item'});
+
+    if(b.existingStatus){
+      const statusRow = el('div', {style:'display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;padding-bottom:14px;border-bottom:1px dashed var(--border);'});
+      const statusSel = el('select',{}); statusSel.style.cssText='font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--ink);background:var(--surface-2);border:1px solid var(--border);border-radius:16px;padding:6px 12px;';
+      EXISTING_STATUS_OPTIONS.forEach(o=>{ const opt=el('option',{value:o.value}, o.label); if(b.existingStatus===o.value) opt.setAttribute('selected','selected'); statusSel.appendChild(opt); });
+      statusSel.addEventListener('change',()=>{ b.existingStatus=statusSel.value; b.verified=false; });
+      statusRow.appendChild(statusSel);
+      if(b.link){ statusRow.appendChild(el('a',{href:b.link, target:'_blank', style:'font-size:12px;color:var(--accent);'}, 'View live post ↗')); }
+      item.appendChild(statusRow);
+      if(b.verdictReason){
+        item.appendChild(el('label',{},'Why this verdict (from the site audit)'));
+        const reasonBox = el('textarea',{}); reasonBox.value = b.verdictReason; reasonBox.style.minHeight='50px'; reasonBox.addEventListener('input',()=>{b.verdictReason=reasonBox.value;});
+        item.appendChild(reasonBox);
+      }
+    }
+
     item.appendChild(el('label',{},'Title'));
     const title = el('input',{type:'text'}); title.value=b.title||''; title.addEventListener('input',()=>{b.title=title.value; b.verified=false;});
     item.appendChild(title);
