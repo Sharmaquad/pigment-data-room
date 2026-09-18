@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
 
 <style>
   :root{
@@ -86,6 +87,11 @@
   .section-dek{ color:var(--ink-2); font-size:14px; margin:0 0 24px; max-width:760px; }
 
   .card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:24px 26px; margin-bottom:16px; }
+  .table-scroll{ overflow-x:auto; }
+  table.data{ width:100%; border-collapse:collapse; font-size:13px; }
+  table.data th{ text-align:left; font-family:var(--font-mono); font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-3); padding:8px 12px; border-bottom:1px solid var(--border); white-space:nowrap; }
+  table.data td{ padding:12px; border-bottom:1px solid var(--border); color:var(--ink-2); vertical-align:top; }
+  table.data tr:last-child td{ border-bottom:none; }
   .card-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
   .card-head h3{ font-family:var(--font-display); font-size:17px; margin:0; }
   .status-pill{ font-family:var(--font-mono); font-size:10.5px; padding:3px 10px; border-radius:100px; font-weight:600; }
@@ -525,6 +531,7 @@ const TABS = [
   {id:'testimonials', label:'Testimonials'},
   {id:'blog', label:'Blog'},
   {id:'audit', label:'Treatment Audit'},
+  {id:'architecture', label:'Architecture'},
 ];
 
 function el(tag, attrs, ...children){
@@ -1206,6 +1213,7 @@ function render(){
   else if(activeTab==='testimonials') renderTestimonials(main);
   else if(activeTab==='blog') renderBlog(main);
   else if(activeTab==='audit') renderAudit(main);
+  else if(activeTab==='architecture') renderArchitecture(main);
 }
 
 // ============================================================
@@ -1315,6 +1323,97 @@ function recordStatus(record){
   if(record.verified) return 'verified';
   const hasContent = Object.keys(record).some(k=>!['origin','verified','verifiedAt','name','id'].includes(k) && fieldFilled(record[k]));
   return hasContent ? 'draft' : 'empty';
+}
+
+// ============================================================
+// ARCHITECTURE TAB — site structure, as a diagram, not a document
+// ============================================================
+const SITE_ARCHITECTURE_DIAGRAM = `graph TD
+  subgraph PAGES["Content pages — what you navigate between"]
+    HOME["Homepage"]
+    DOC1["Doctor page — Dr. Namitha"]
+    DOC2["Doctor page — Dr. Abhey"]
+    TRT["Treatment pages ×9"]
+    LOC["Location pages ×4"]
+    GAL["Results gallery — by treatment"]
+    FAQ["FAQ hub"]
+    BLOG["Blog posts"]
+  end
+
+  CTA(["Book a Consultation / Call Now<br/>sticky header, every page"])
+
+  HOME --> DOC1
+  HOME --> DOC2
+  HOME --> TRT
+  HOME --> LOC
+  HOME --> GAL
+
+  DOC1 --> GAL
+  DOC2 --> GAL
+  DOC1 -.specializes in.-> TRT
+  DOC2 -.specializes in.-> TRT
+
+  TRT --> GAL
+  TRT --> FAQ
+  TRT --> DOC1
+  TRT --> DOC2
+  TRT --> LOC
+  TRT -.related treatment.-> TRT
+  TRT <--> BLOG
+
+  LOC --> TRT
+  LOC --> DOC1
+  LOC --> DOC2
+
+  GAL -.filter by treatment.-> TRT
+  FAQ -.treatment-specific.-> TRT
+  BLOG -.first mention, in-text.-> TRT
+  BLOG -.first mention, in-text.-> DOC1
+  BLOG -.first mention, in-text.-> LOC
+
+  PAGES -.always present, not a link.- CTA`;
+
+const ARCHITECTURE_LINK_TABLE = [
+  ['Doctor → Gallery', 'Both doctor pages link to the one results gallery', "Results are common, not individually attributed; the doctor page's job is to build trust, then hand off to proof."],
+  ['Treatment → Gallery (filtered)', 'Each treatment page embeds its own filtered slice of the gallery', 'Highest-intent placement — someone reading about laser hair removal sees laser hair removal results, not a mixed feed.'],
+  ['Treatment ↔ Treatment', 'Topically related treatments cross-link (PRP Hair Treatment ↔ Hair Fall Treatment; Pigmentation ↔ Chemical Peel; Acne Treatment ↔ Chemical Peel)', 'Keeps focused pages from becoming orphaned islands — pillar-and-cluster, without re-bundling the content itself.'],
+  ['Treatment ↔ Blog', 'Every blog post links to the treatment(s) it discusses; every treatment page links back to relevant posts', 'This is what makes the blog calendar actually feed the pillar pages instead of sitting disconnected in /blog/.'],
+  ['Treatment → Doctor', 'Each treatment page names which doctor(s) cover it, based on their listed specializations', 'Answers "who would actually treat me" right where the decision is being made.'],
+  ['Location → Treatment, Location → Doctor', 'All 4 location pages link to the same 9 treatments and both doctors', 'One physical clinic, four local-SEO entry points — the pages differ by neighborhood content, not by what\'s offered.'],
+  ['FAQ → Treatment', 'Every treatment-specific FAQ in the hub links back to its treatment page', 'Captures the search, then routes straight to the page that converts.'],
+  ['Sitewide footer', 'Every page links to: both doctors, the treatments hub, all locations, the gallery, and the FAQ hub', 'The simplest, highest-leverage link of all — nothing is ever more than one click from anything else.'],
+];
+
+let mermaidInitialized = false;
+function renderArchitecture(main){
+  main.appendChild(el('h2', {}, 'Site architecture'));
+  main.appendChild(el('p', {class:'section-dek'}, 'How the pages actually link to each other. Reference only — this reflects the plan from the SEO report, not something edited here. Data lives once in the Data Room, tagged by relationship (a photo is tagged to a treatment, never to a doctor), and every page that needs it queries by that tag rather than storing its own copy.'));
+
+  const card = el('div', {class:'card'});
+  const diagramHolder = el('div', {class:'mermaid', style:'display:flex;justify-content:center;overflow-x:auto;'}, SITE_ARCHITECTURE_DIAGRAM);
+  card.appendChild(diagramHolder);
+  card.appendChild(el('p', {style:'font-size:12.5px;color:var(--ink-3);margin-top:14px;'}, 'The CTA is drawn as a pill, not a rectangle — it\'s a persistent UI element layered over every page, not a destination pages "flow into."'));
+  main.appendChild(card);
+
+  const tableCard = el('div', {class:'card', style:'margin-top:20px;'});
+  tableCard.appendChild(el('h3', {style:'font-family:var(--font-display);font-size:18px;margin:0 0 14px;'}, 'What each link is for'));
+  const table = el('table', {class:'data'},
+    el('thead', {}, el('tr', {}, el('th',{},'Link'), el('th',{},'What it is'), el('th',{},'Why it exists'))),
+    el('tbody', {}, ...ARCHITECTURE_LINK_TABLE.map(([a,b,c]) =>
+      el('tr', {}, el('td',{},a), el('td',{},b), el('td',{},c))
+    ))
+  );
+  const scrollWrap = el('div', {class:'table-scroll'}, table);
+  tableCard.appendChild(scrollWrap);
+  main.appendChild(tableCard);
+
+  if(window.mermaid){
+    if(!mermaidInitialized){
+      window.mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
+      mermaidInitialized = true;
+    }
+    window.mermaid.run({ nodes: [diagramHolder] });
+  }
 }
 
 // ============================================================
