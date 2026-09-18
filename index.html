@@ -350,6 +350,33 @@ const DOCTORS = [
   {id:'dr-abhey-shamsunder', name:'Dr. Abhey Shamsunder'},
 ];
 
+// Three-state consent model for the Consent Review tab — "haven't asked yet"
+// and "asked, patient said no" are both real, distinct states from "confirmed
+// yes", so this is deliberately not a boolean.
+const CONSENT_STATES = [
+  {id:'pending', emoji:'⏳', label:'Pending — not yet asked'},
+  {id:'confirmed', emoji:'✅', label:'Confirmed — patient agreed'},
+  {id:'declined', emoji:'❌', label:'Declined — patient said no'},
+];
+
+// The 9 real before/after pairs (plus one before-only pair) sitting in the
+// local Google Drive folder, gathered before this tab existed — reference
+// list only, so whoever uses this tab knows what to go create entries for.
+// Nothing below is written to Firestore automatically; a human creates each
+// entry through "+ Add pending pair" the same way every other tab works.
+const KNOWN_PENDING_PAIRS = [
+  'MNRF pair 1 — acne scarring (face partially/fully visible)',
+  'MNRF pair 2 — acne scarring (face partially/fully visible)',
+  'Hydrafacial pair 1 (face partially/fully visible)',
+  'Hydrafacial pair 2 (face partially/fully visible)',
+  'GFC — hair-fall treatment (face partially/fully visible)',
+  'Acne treatment pair (face partially/fully visible)',
+  'Pigmentation treatment pair (face partially/fully visible)',
+  'Tattoo Removal (not a current treatment — face partially/fully visible)',
+  'Glutathione IV (not a current treatment — face partially/fully visible)',
+  'Acne — before photo only, no matching after photo exists',
+];
+
 // Pulled directly from pigmentclinics.in (fetched live) — only ever used to fill a
 // field that has never been saved. Once you save a field, this is never consulted
 // again for it, so nothing here can overwrite an edit.
@@ -515,7 +542,7 @@ let state = {
   treatments: {}, locations: {},
   faqs: [], testimonials: [],
   gallery: [], blog: [],
-  audit: {},
+  audit: {}, consentReview: [],
 };
 let activeTab = 'ready';
 let dataLoaded = false;
@@ -527,6 +554,7 @@ const TABS = [
   {id:'treatments', label:'Treatments'},
   {id:'locations', label:'Locations'},
   {id:'gallery', label:'Before/After'},
+  {id:'consentReview', label:'Consent Review'},
   {id:'faqs', label:'FAQs'},
   {id:'testimonials', label:'Testimonials'},
   {id:'blog', label:'Blog'},
@@ -570,6 +598,7 @@ function originBadge(origin){
 //   faqs/{id}      — FAQs tab
 //   testimonials/{id} — Testimonials tab
 //   gallery/{id}   — Before/After tab
+//   consentReview/{id} — Consent Review tab
 //   blogPosts/{id} — Blog tab
 //   auditItems/{id}— Treatment Audit tab
 // ============================================================
@@ -718,6 +747,7 @@ function renderTabs(){
     } else if(t.id==='faqs'){ chip = String(state.faqs.length); }
     else if(t.id==='testimonials'){ chip = String(state.testimonials.length); }
     else if(t.id==='gallery'){ chip = String(state.gallery.length); }
+    else if(t.id==='consentReview'){ chip = String(state.consentReview.length); }
     else if(t.id==='blog'){ chip = String(state.blog.length); }
     const btn = el('button', {class: t.id===activeTab?'active':'', onclick:()=>{activeTab=t.id; render();}},
       t.label, chip ? el('span',{class:'chip'}, chip) : null);
@@ -1105,6 +1135,131 @@ function renderGallery(main){
   main.appendChild(card);
 }
 
+// ============================================================
+// CONSENT REVIEW TAB
+// Holds before/after pairs that have a visible face and therefore need
+// documented patient consent before they can ever move to the live
+// Before/After gallery — see KNOWN_PENDING_PAIRS above for the list this
+// was built to track. Nothing here is ever public; "Promote to live
+// gallery" is the only path from this tab to the real gallery collection,
+// and it only appears once consent is confirmed and both photos exist.
+// ============================================================
+function renderConsentReview(main){
+  main.appendChild(el('h2', {}, 'Consent review'));
+  main.appendChild(el('p', {class:'section-dek'}, 'Before/after pairs where a face is fully or partially visible, held here until documented patient consent is confirmed — nothing on this tab is public, and nothing here feeds the live site until it\'s explicitly promoted to the Before/After gallery below.'));
+
+  const intro = el('div', {class:'callout'});
+  intro.appendChild(el('p', {class:'ctitle'}, 'Known pending pairs to create entries for'));
+  intro.appendChild(el('p', {}, 'Gathered from Google Drive, per that folder\'s own README — none of these are pre-loaded here, so add one entry below per item and attach its photos yourself:'));
+  const list = el('div', {style:'margin-top:10px;'});
+  KNOWN_PENDING_PAIRS.forEach(label=>{
+    list.appendChild(el('div', {style:'font-size:13px;color:var(--ink-2);padding:4px 0;'}, '• ' + label));
+  });
+  intro.appendChild(list);
+  main.appendChild(intro);
+
+  const card = el('div', {class:'card'});
+  if(state.consentReview.length===0){
+    card.appendChild(el('div',{class:'empty-state'}, 'No pending pairs yet — add the first one below.'));
+  }
+  state.consentReview.forEach((c,i)=>{
+    const item = el('div', {class:'list-item'});
+
+    item.appendChild(el('label',{},'Label (short description, e.g. "MNRF pair 1")'));
+    const labelInp = el('input',{type:'text'}); labelInp.value = c.label||''; labelInp.addEventListener('input',()=>{ c.label=labelInp.value; c.verified=false; });
+    item.appendChild(labelInp);
+
+    item.appendChild(el('label',{},'Treatment (leave blank if this isn\'t a current treatment)'));
+    const sel = el('select',{}); sel.style.cssText='width:100%;font-family:var(--font-body);font-size:14px;color:var(--ink);background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;';
+    sel.appendChild(el('option',{value:''},'— none / not a current treatment —'));
+    TREATMENTS.forEach(t=>{ const opt = el('option',{value:t.id}, t.name); if(c.treatmentId===t.id) opt.setAttribute('selected','selected'); sel.appendChild(opt); });
+    sel.addEventListener('change',()=>{ c.treatmentId=sel.value; c.verified=false; });
+    item.appendChild(sel);
+
+    const row = el('div', {class:'field-row', style:'margin-top:14px;'});
+    const c1 = el('div'); c1.appendChild(el('label',{},'Before photo'));
+    uploadField(c1, c.beforeUrl, (url)=>{ c.beforeUrl=url; c.verified=false; saveDoc('consentReview', c.id, c); render(); }, 'consentReview/'+c.id+'/before');
+    const c2 = el('div'); c2.appendChild(el('label',{},'After photo (leave empty if this pair is before-only)'));
+    uploadField(c2, c.afterUrl, (url)=>{ c.afterUrl=url; c.verified=false; saveDoc('consentReview', c.id, c); render(); }, 'consentReview/'+c.id+'/after');
+    row.appendChild(c1); row.appendChild(c2);
+    item.appendChild(row);
+
+    item.appendChild(el('label',{},'Consent status'));
+    const toggle = el('div', {style:'display:flex;gap:10px;margin-top:2px;'});
+    CONSENT_STATES.forEach(cs=>{
+      const active = (c.consentStatus||'pending')===cs.id;
+      const btn = el('button', {
+        type:'button',
+        style:'flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 8px;border-radius:12px;cursor:pointer;'
+          + 'border:2px solid '+(active?'var(--accent)':'var(--border)')+';'
+          + 'background:'+(active?'var(--accent-soft)':'var(--surface-2)')+';',
+        onclick: ()=>{ c.consentStatus = cs.id; c.verified=false; render(); }
+      },
+        el('span', {style:'font-size:26px;line-height:1;'}, cs.emoji),
+        el('span', {style:'font-family:var(--font-mono);font-size:10.5px;font-weight:600;text-align:center;color:'+(active?'var(--accent)':'var(--ink-3)')+';'}, cs.label)
+      );
+      toggle.appendChild(btn);
+    });
+    item.appendChild(toggle);
+
+    item.appendChild(el('label',{},'Consent note (who confirmed it and how — the audit trail, e.g. "Confirmed via WhatsApp with Shreyash, patient ID XYZ")'));
+    const note = el('textarea',{}); note.value = c.consentNote||''; note.addEventListener('input',()=>{ c.consentNote=note.value; c.verified=false; });
+    item.appendChild(note);
+
+    const msg = el('span',{class:'save-msg'},'');
+    item.appendChild(el('div',{class:'btn-row'},
+      el('button',{class:'btn primary', onclick: async ()=>{ await saveDoc('consentReview', c.id, c); msg.textContent='Saved'; renderTabs(); setTimeout(()=>msg.textContent='',2000); }}, 'Save'),
+      el('button',{class:'btn danger', onclick: async ()=>{ await removeDoc('consentReview', c.id); state.consentReview.splice(i,1); render(); }}, 'Delete'),
+      msg
+    ));
+
+    if((c.consentStatus||'pending') !== 'confirmed'){
+      item.appendChild(el('p', {style:'font-size:12px;color:var(--crit);margin-top:10px;'}, 'Consent must be Confirmed before this can be verified or promoted to the live gallery.'));
+    } else {
+      renderVerifyBar(item, c, 'consentReview', c.id, ()=>c);
+      if(c.beforeUrl && c.afterUrl){
+        const promoteMsg = el('span',{class:'save-msg'},'');
+        item.appendChild(el('div', {class:'btn-row'},
+          el('button', {class:'btn verify', onclick: async ()=>{
+            const galleryId = 'g'+Date.now();
+            const galleryDoc = {
+              id: galleryId,
+              treatmentId: c.treatmentId||'',
+              caption: c.label||'',
+              beforeUrl: c.beforeUrl,
+              afterUrl: c.afterUrl,
+              consentConfirmed: true,
+              origin: 'human',
+              verified: false,
+            };
+            await saveDoc('gallery', galleryId, galleryDoc);
+            state.gallery.push(galleryDoc);
+            promoteMsg.textContent = 'Promoted to Before/After gallery';
+            if(confirm('Promoted to the live gallery. Also remove this entry from Consent Review now?')){
+              await removeDoc('consentReview', c.id);
+              state.consentReview.splice(i,1);
+            }
+            render();
+          }}, 'Promote to live gallery'),
+          promoteMsg
+        ));
+      } else {
+        item.appendChild(el('p', {style:'font-size:12px;color:var(--ink-3);margin-top:10px;'}, 'Both a before and an after photo are needed before this can be promoted to the live gallery.'));
+      }
+    }
+
+    card.appendChild(item);
+  });
+  card.appendChild(el('div',{class:'add-row'}, el('button',{class:'btn', onclick: async ()=>{
+    const id = 'cr'+Date.now();
+    const c = {id, label:'', treatmentId:'', beforeUrl:'', afterUrl:'', consentStatus:'pending', consentNote:'', origin:'human', verified:false};
+    state.consentReview.push(c);
+    await saveDoc('consentReview', id, c);
+    render();
+  }}, '+ Add pending pair')));
+  main.appendChild(card);
+}
+
 function scanForEntityLinks(text){
   if(!text) return [];
   const registry = [
@@ -1209,6 +1364,7 @@ function render(){
   else if(activeTab==='treatments') renderTreatments(main);
   else if(activeTab==='locations') renderLocations(main);
   else if(activeTab==='gallery') renderGallery(main);
+  else if(activeTab==='consentReview') renderConsentReview(main);
   else if(activeTab==='faqs') renderFaqs(main);
   else if(activeTab==='testimonials') renderTestimonials(main);
   else if(activeTab==='blog') renderBlog(main);
@@ -1340,7 +1496,9 @@ const SITE_ARCHITECTURE_DIAGRAM = `graph TD
     BLOG["Blog posts"]
   end
 
-  CTA(["Book a Consultation / Call Now<br/>sticky header, every page"])
+  CTA1(["Book Appointment — Zenoti<br/>primary, nav bar, every page"])
+  CTA2(["Call Us<br/>secondary, top utility bar"])
+  CTA3(["WhatsApp<br/>floating bubble, bottom-right"])
 
   HOME --> DOC1
   HOME --> DOC2
@@ -1371,7 +1529,9 @@ const SITE_ARCHITECTURE_DIAGRAM = `graph TD
   BLOG -.first mention, in-text.-> DOC1
   BLOG -.first mention, in-text.-> LOC
 
-  PAGES -.always present, not a link.- CTA`;
+  PAGES -.always present, not a link.- CTA1
+  PAGES -.always present, not a link.- CTA2
+  PAGES -.always present, not a link.- CTA3`;
 
 const ARCHITECTURE_LINK_TABLE = [
   ['Doctor → Gallery', 'Both doctor pages link to the one results gallery', "Results are common, not individually attributed; the doctor page's job is to build trust, then hand off to proof."],
@@ -1392,7 +1552,7 @@ function renderArchitecture(main){
   const card = el('div', {class:'card'});
   const diagramHolder = el('div', {class:'mermaid', style:'display:flex;justify-content:center;overflow-x:auto;'}, SITE_ARCHITECTURE_DIAGRAM);
   card.appendChild(diagramHolder);
-  card.appendChild(el('p', {style:'font-size:12.5px;color:var(--ink-3);margin-top:14px;'}, 'The CTA is drawn as a pill, not a rectangle — it\'s a persistent UI element layered over every page, not a destination pages "flow into."'));
+  card.appendChild(el('p', {style:'font-size:12.5px;color:var(--ink-3);margin-top:14px;'}, 'Three separate, persistent CTAs, not one merged button — this is how the live site actually works today: Book Appointment (Zenoti) is the primary action in the nav bar, Call Us sits in the top utility bar as a lower-friction fallback, and WhatsApp is the floating bubble for the lowest-commitment inquiries. All three are drawn as pills, not rectangles, because none of them are a destination page — they\'re persistent UI layered over every page.'));
   main.appendChild(card);
 
   const tableCard = el('div', {class:'card', style:'margin-top:20px;'});
@@ -1581,6 +1741,12 @@ function attachLiveListeners(){
     safeRender();
   });
 
+  onSnapshot(collection(firestore,'consentReview'), (qs)=>{
+    if(qs.metadata.hasPendingWrites) return;
+    state.consentReview = qs.docs.map(d=>({id:d.id, ...d.data()}));
+    safeRender();
+  });
+
   onSnapshot(collection(firestore,'auditItems'), (qs)=>{
     if(qs.metadata.hasPendingWrites) return;
     qs.docs.forEach(d=>{ state.audit[d.id] = d.data(); });
@@ -1636,6 +1802,9 @@ async function init(){
 
     const blogSnap = await getDocs(collection(firestore,'blogPosts'));
     state.blog = blogSnap.docs.map(d=>({id:d.id, ...d.data()}));
+
+    const consentReviewSnap = await getDocs(collection(firestore,'consentReview'));
+    state.consentReview = consentReviewSnap.docs.map(d=>({id:d.id, ...d.data()}));
 
     const auditSnap = await getDocs(collection(firestore,'auditItems'));
     auditSnap.forEach(d=>{ state.audit[d.id] = d.data(); });
