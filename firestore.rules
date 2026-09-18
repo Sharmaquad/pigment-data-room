@@ -1,0 +1,14 @@
+rules_version = '2';
+
+// Shared-password model: the client signs in anonymously only after the
+// visitor enters the correct password (checked client-side against a
+// hash before sign-in is triggered). Firestore itself just requires an
+// authenticated (even anonymous) session — it can't verify the password
+// text, only that the client completed Firebase Auth.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

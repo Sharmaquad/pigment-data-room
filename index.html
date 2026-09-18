@@ -1,0 +1,1544 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pigment Data Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    color-scheme: light;
+    --bg: #F6F2EA; --surface: #FFFEFB; --surface-2: #EFE8DA;
+    --ink: #241E19; --ink-2: #5B5148; --ink-3: #8C8074; --border: #E2D9C8;
+    --accent: #1E6E63; --accent-ink: #FFFFFF; --accent-soft: #DCEAE5;
+    --plum: #7C3B5C; --plum-soft: #F1E1E8;
+    --good: #2E7D4F; --good-soft: #E3F1E7;
+    --warn: #B9781E; --warn-soft: #FBEEDA;
+    --crit: #B23A3A; --crit-soft: #FAE5E1;
+    --grid: #E7DFD1;
+    --font-display: "Fraunces", "Iowan Old Style", ui-serif, Georgia, serif;
+    --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --bg: #17140F; --surface: #1F1B15; --surface-2: #2A241B;
+      --ink: #F3EDE2; --ink-2: #C7BBA9; --ink-3: #8F8271; --border: #392F23;
+      --accent: #4FBDAF; --accent-ink: #0F2521; --accent-soft: #1E3934;
+      --plum: #D488A9; --plum-soft: #3A2530;
+      --good: #6FCB8E; --good-soft: #1D3324;
+      --warn: #E3AC55; --warn-soft: #3A2C14;
+      --crit: #E37878; --crit-soft: #3A2020;
+      --grid: #322A20;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg: #17140F; --surface: #1F1B15; --surface-2: #2A241B;
+    --ink: #F3EDE2; --ink-2: #C7BBA9; --ink-3: #8F8271; --border: #392F23;
+    --accent: #4FBDAF; --accent-ink: #0F2521; --accent-soft: #1E3934;
+    --plum: #D488A9; --plum-soft: #3A2530;
+    --good: #6FCB8E; --good-soft: #1D3324;
+    --warn: #E3AC55; --warn-soft: #3A2C14;
+    --crit: #E37878; --crit-soft: #3A2020;
+    --grid: #322A20;
+  }
+
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-body); font-size:15px; line-height:1.55; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 28px 90px; }
+
+  header.masthead{
+    padding:44px 28px 28px; border-bottom:1px solid var(--border);
+    background: radial-gradient(1100px 220px at 12% -40%, var(--accent-soft), transparent 60%), var(--surface);
+  }
+  .masthead-inner{ max-width:1180px; margin:0 auto; }
+  .eyebrow{ font-family:var(--font-mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); font-weight:600; margin:0 0 14px; display:flex; align-items:center; gap:10px; }
+  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:var(--accent); }
+  h1{ font-family:var(--font-display); font-weight:600; font-size:34px; line-height:1.15; margin:0 0 12px; text-wrap:balance; letter-spacing:-0.01em; }
+  .dek{ font-size:15.5px; color:var(--ink-2); max-width:720px; margin:0 0 20px; text-wrap:pretty; }
+
+  .progress-wrap{ margin-top:18px; }
+  .progress-track{ height:10px; background:var(--surface-2); border-radius:6px; overflow:hidden; display:flex; }
+  .progress-fill{ height:100%; background:var(--accent); transition:width .3s; }
+  .progress-label{ display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:12px; color:var(--ink-3); margin-top:8px; }
+
+  nav.tabs{ display:flex; gap:4px; flex-wrap:wrap; margin-top:22px; background:var(--surface-2); border-radius:10px; padding:4px; }
+  nav.tabs button{ font-family:var(--font-mono); font-size:12.5px; font-weight:600; padding:9px 14px; border-radius:8px; border:none; background:transparent; color:var(--ink-3); cursor:pointer; white-space:nowrap; }
+  nav.tabs button.active{ background:var(--surface); color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.08); }
+  nav.tabs button .chip{ display:inline-block; margin-left:6px; font-size:10px; background:var(--accent-soft); color:var(--accent); padding:1px 6px; border-radius:100px; }
+  nav.tabs button .chip.done{ background:var(--good-soft); color:var(--good); }
+
+  main{ padding:32px 0 0; }
+  h2{ font-family:var(--font-display); font-size:23px; font-weight:600; margin:0 0 6px; }
+  .section-dek{ color:var(--ink-2); font-size:14px; margin:0 0 24px; max-width:760px; }
+
+  .card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:24px 26px; margin-bottom:16px; }
+  .card-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+  .card-head h3{ font-family:var(--font-display); font-size:17px; margin:0; }
+  .status-pill{ font-family:var(--font-mono); font-size:10.5px; padding:3px 10px; border-radius:100px; font-weight:600; }
+  .status-pill.empty{ background:var(--surface-2); color:var(--ink-3); }
+  .status-pill.partial{ background:var(--warn-soft); color:var(--warn); }
+  .status-pill.done{ background:var(--good-soft); color:var(--good); }
+
+  label{ display:block; font-size:11.5px; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.05em; color:var(--ink-3); margin:14px 0 6px; }
+  label:first-of-type{ margin-top:0; }
+  input[type="text"], textarea{
+    width:100%; font-family:var(--font-body); font-size:14px; color:var(--ink); background:var(--surface-2);
+    border:1px solid var(--border); border-radius:8px; padding:10px 12px; resize:vertical;
+  }
+  input[type="text"]:focus, textarea:focus{ outline:2px solid var(--accent); outline-offset:-1px; background:var(--surface); }
+  textarea{ min-height:70px; font-family:var(--font-body); line-height:1.5; }
+  .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:640px){ .field-row{ grid-template-columns:1fr; } }
+
+  .btn{ font-family:var(--font-mono); font-size:12.5px; font-weight:600; padding:9px 18px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--ink); cursor:pointer; }
+  .btn:hover{ background:var(--surface-2); }
+  .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+  .btn.primary:hover{ opacity:.9; }
+  .btn.danger{ color:var(--crit); }
+  .btn:disabled{ opacity:.5; cursor:default; }
+  .btn-row{ display:flex; gap:10px; align-items:center; margin-top:16px; }
+  .save-msg{ font-family:var(--font-mono); font-size:12px; color:var(--good); }
+
+  .upload-box{ border:1.5px dashed var(--border); border-radius:10px; padding:16px; text-align:center; background:var(--surface-2); }
+  .upload-box.has-image{ padding:10px; }
+  .upload-box img{ max-width:100%; max-height:180px; border-radius:6px; display:block; margin:0 auto 10px; }
+  .upload-box input[type="file"]{ font-size:12px; font-family:var(--font-mono); color:var(--ink-2); }
+  .upload-hint{ font-size:11.5px; color:var(--ink-3); margin-top:8px; }
+
+  .list-item{ border-top:1px solid var(--border); padding-top:16px; margin-top:16px; }
+  .list-item:first-child{ border-top:none; padding-top:0; margin-top:0; }
+  .add-row{ margin-top:18px; }
+
+  .callout{ border-radius:14px; padding:20px 24px; border:1px solid var(--border); background:var(--warn-soft); border-color:color-mix(in srgb, var(--warn) 30%, var(--border)); margin-bottom:24px; }
+  .callout .ctitle{ font-family:var(--font-display); font-size:16px; font-weight:600; margin:0 0 6px; }
+  .callout p{ margin:0; color:var(--ink-2); font-size:13.5px; }
+
+  .empty-state{ text-align:center; padding:40px 20px; color:var(--ink-3); font-size:13.5px; }
+
+  .verify-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:16px; padding-top:16px; border-top:1px dashed var(--border); flex-wrap:wrap; }
+  .origin-badge{ font-family:var(--font-mono); font-size:10px; padding:4px 10px; border-radius:100px; font-weight:600; white-space:nowrap; }
+  .origin-badge.scraped{ background:var(--accent-soft); color:var(--accent); }
+  .origin-badge.ai-drafted{ background:var(--plum-soft); color:var(--plum); }
+  .origin-badge.human{ background:var(--good-soft); color:var(--good); }
+  .verified-badge{ font-family:var(--font-mono); font-size:11.5px; font-weight:700; color:var(--good); display:flex; align-items:center; gap:6px; }
+  .btn.verify{ background:var(--good); border-color:var(--good); color:var(--accent-ink); font-weight:700; }
+  .btn.verify:hover{ opacity:.88; }
+  .ready-list{ display:flex; flex-direction:column; gap:2px; }
+  .ready-row{ display:grid; grid-template-columns:1fr 140px 100px; gap:12px; align-items:center; padding:11px 0; border-bottom:1px solid var(--border); font-size:13.5px; }
+  .ready-row:last-child{ border-bottom:none; }
+  .ready-row .rname{ color:var(--ink); font-weight:500; }
+  .ready-status{ font-family:var(--font-mono); font-size:10.5px; padding:3px 9px; border-radius:100px; font-weight:600; text-align:center; }
+  .ready-status.empty{ background:var(--surface-2); color:var(--ink-3); }
+  .ready-status.draft{ background:var(--warn-soft); color:var(--warn); }
+  .ready-status.verified{ background:var(--good-soft); color:var(--good); }
+  .ready-group{ font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--accent); font-weight:700; margin:22px 0 4px; }
+  .ready-group:first-child{ margin-top:0; }
+  .summary-strip{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:20px; }
+  .summary-tile{ background:var(--surface); padding:16px 18px; }
+  .summary-tile .n{ font-family:var(--font-mono); font-size:22px; font-weight:700; }
+  .summary-tile .l{ font-size:11px; color:var(--ink-3); text-transform:uppercase; letter-spacing:.05em; margin-top:2px; }
+
+  footer{ margin-top:60px; padding-top:22px; border-top:1px solid var(--border); font-size:11.5px; color:var(--ink-3); font-family:var(--font-mono); line-height:1.7; }
+  #syncStatus{ font-size:11.5px; font-family:var(--font-mono); }
+
+  /* ---- Password gate ---- */
+  .pw-screen{ min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--bg); padding:24px; }
+  .pw-card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:36px 32px; max-width:380px; width:100%; text-align:center; }
+  .pw-card .eyebrow{ justify-content:center; }
+  .pw-card h1{ font-size:22px; margin:0 0 8px; }
+  .pw-card p.dek{ color:var(--ink-2); font-size:13.5px; margin:0 auto 22px; max-width:none; }
+  .pw-card input[type="password"]{
+    width:100%; font-family:var(--font-mono); font-size:15px; color:var(--ink); background:var(--surface-2);
+    border:1px solid var(--border); border-radius:8px; padding:11px 12px; text-align:center; letter-spacing:.05em;
+  }
+  .pw-card input[type="password"]:focus{ outline:2px solid var(--accent); outline-offset:-1px; background:var(--surface); }
+  .pw-card .btn{ width:100%; margin-top:14px; padding:11px 18px; }
+  .pw-error{ color:var(--crit); font-size:12.5px; font-family:var(--font-mono); margin-top:14px; min-height:16px; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- PASSWORD GATE — shown until Firebase Auth reports a signed-in -->
+<!-- (anonymous) user. See the <script type="module"> below for   -->
+<!-- the hashing + sign-in logic.                                  -->
+<!-- ============================================================ -->
+<div class="pw-screen" id="passwordGate">
+  <div class="pw-card">
+    <p class="eyebrow"><span class="dot"></span>Data Room &middot; Pigment Skin &amp; Hair Clinic</p>
+    <h1>Enter password</h1>
+    <p class="dek">This holds real clinic business data and patient before/after photos. Access is limited to people who have the shared password.</p>
+    <input type="password" id="pwInput" autocomplete="off" placeholder="Password" />
+    <button class="btn primary" id="pwBtn">Enter</button>
+    <div class="pw-error" id="pwError"></div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- APP ROOT — hidden until auth succeeds                         -->
+<!-- ============================================================ -->
+<div id="appRoot" hidden>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <p class="eyebrow"><span class="dot"></span>Data Room &middot; Pigment Skin &amp; Hair Clinic</p>
+      <h1>Everything the new website needs, in one place.</h1>
+      <p class="dek">Every record is tagged with where it came from — <span class="origin-badge scraped" style="vertical-align:1px;">From website</span> is real content pulled from pigmentclinics.in, <span class="origin-badge ai-drafted" style="vertical-align:1px;">AI-drafted</span> is a suggestion for a gap the site doesn't cover yet, written from general dermatology and SEO knowledge — never a specific price, and never a fabricated fact. Nothing is claimed as final: read it, edit anything that's wrong, and click <b>Verify</b> when you're satisfied it's accurate. Only verified records are meant to go live. Start on the <b>Ready to Publish</b> tab for the full picture.</p>
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+        <div class="progress-label"><span id="progressText">Loading&hellip;</span><span id="progressPct">0%</span></div>
+      </div>
+      <nav class="tabs" id="tabs"></nav>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <main id="main"></main>
+
+    <footer>
+      Everything typed or uploaded here is saved automatically to this clinic's private Firebase project &mdash; it is not yet live on pigmentclinics.in. Once a section is filled, tell Claude to build or update the corresponding page and it reads this data directly. Nothing here is public: this page is only reachable by people who know the shared password, and every read/write requires a signed-in session.
+      <div id="syncStatus">Not saved yet this session.</div>
+    </footer>
+  </div>
+</div>
+
+<script type="module">
+// ============================================================
+// FIREBASE SETUP
+// ============================================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getFirestore, doc, getDoc, getDocs, setDoc, deleteDoc, collection, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import {
+  getStorage, ref, uploadBytes, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
+import {
+  getAuth, signInAnonymously, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+const firebaseConfig = {
+  projectId: "pigment-data-room",
+  appId: "1:741924288254:web:80909870b34add7466d7af",
+  storageBucket: "pigment-data-room.firebasestorage.app",
+  apiKey: "AIzaSyAAbzj-vamic8Xr6rMvnsgeOhMpTWO10_s",
+  authDomain: "pigment-data-room.firebaseapp.com",
+  messagingSenderId: "741924288254"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const firestore = getFirestore(fbApp);
+const storage = getStorage(fbApp);
+const auth = getAuth(fbApp);
+
+// ============================================================
+// PASSWORD GATE
+// Only the SHA-256 hash of the real password is stored here —
+// never the plaintext. crypto.subtle (Web Crypto, browser-native)
+// hashes what's typed and we compare hex digests.
+// ============================================================
+const REQUIRED_HASH = 'c4d18a67a39f70d5be12035ce47b707bd90bb78c988ca7996e33b64b3eca1932';
+
+async function sha256Hex(text){
+  const bytes = new TextEncoder().encode(text);
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+const gateEl = document.getElementById('passwordGate');
+const appRootEl = document.getElementById('appRoot');
+const pwInput = document.getElementById('pwInput');
+const pwBtn = document.getElementById('pwBtn');
+const pwError = document.getElementById('pwError');
+
+async function attemptUnlock(){
+  const value = pwInput.value;
+  pwError.textContent = '';
+  if(!value){ pwError.textContent = 'Enter a password first.'; return; }
+  pwBtn.disabled = true;
+  pwBtn.textContent = 'Checking…';
+  try{
+    const hex = await sha256Hex(value);
+    if(hex === REQUIRED_HASH){
+      // Correct password — sign in anonymously. Firestore/Storage rules
+      // require request.auth != null, so nothing else can happen until
+      // this resolves and onAuthStateChanged below fires with a user.
+      await signInAnonymously(auth);
+    } else {
+      pwError.textContent = 'Incorrect password — try again.';
+      pwBtn.disabled = false;
+      pwBtn.textContent = 'Enter';
+    }
+  } catch(e){
+    console.error(e);
+    pwError.textContent = 'Could not sign in — check your connection and try again.';
+    pwBtn.disabled = false;
+    pwBtn.textContent = 'Enter';
+  }
+}
+pwBtn.addEventListener('click', attemptUnlock);
+pwInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') attemptUnlock(); });
+
+let booted = false;
+onAuthStateChanged(auth, (user)=>{
+  if(user){
+    // Signed in — either just now via the password screen, or restored
+    // automatically from Firebase's own persisted session (IndexedDB),
+    // which is why a returning visitor in the same browser isn't asked
+    // to re-type the password every page load.
+    gateEl.hidden = true;
+    appRootEl.hidden = false;
+    pwBtn.disabled = false;
+    pwBtn.textContent = 'Enter';
+    if(!booted){ booted = true; boot(); }
+  } else {
+    appRootEl.hidden = true;
+    gateEl.hidden = false;
+  }
+});
+
+// ============================================================
+// APP DATA / DOM helpers (shared across all tabs)
+// ============================================================
+let TREATMENTS = [
+  {id:'laser-hair-removal', name:'Laser Hair Removal'},
+  {id:'acne-treatment', name:'Acne Treatment'},
+  {id:'pigmentation-treatment', name:'Pigmentation Treatment'},
+  {id:'hair-fall-treatment', name:'Hair Fall Treatment'},
+  {id:'prp-hair-treatment', name:'PRP Hair Treatment'},
+  {id:'botox-anti-aging', name:'Botox / Anti-Aging'},
+  {id:'hydrafacial', name:'HydraFacial'},
+  {id:'chemical-peel', name:'Chemical Peel'},
+  {id:'skin-tags', name:'Skin Tag Removal'},
+];
+const LOCATIONS = [
+  {id:'haralur-road', name:'Haralur Road (main clinic)'},
+  {id:'hsr-layout', name:'HSR Layout'},
+  {id:'sarjapur-road', name:'Sarjapur Road'},
+  {id:'bellandur', name:'Bellandur'},
+];
+const DOCTORS = [
+  {id:'dr-namitha-chathra', name:'Dr. Namitha Chathra'},
+  {id:'dr-abhey-shamsunder', name:'Dr. Abhey Shamsunder'},
+];
+
+// Pulled directly from pigmentclinics.in (fetched live) — only ever used to fill a
+// field that has never been saved. Once you save a field, this is never consulted
+// again for it, so nothing here can overwrite an edit.
+const SEED = {
+  org: {
+    origin: 'scraped',
+    clinicName: 'Pigment Skin & Hair Clinic',
+    tagline: 'Where Science Meets Beauty – Redefining Skin & Haircare',
+    phone: '+91 63642 84242 / +91 86182 12489',
+    email: 'info@pigmentclinics.in',
+    hours: 'All days, 10 AM – 8 PM',
+  },
+  doctors: {
+    'dr-namitha-chathra': {
+      origin: 'scraped',
+      credentials: 'MBBS, MD DVL, FRGUHS — Consultant Dermatologist, Aesthetic Expert, Mentor',
+      yearsExperience: '17+ years',
+      specializations: 'Skin rejuvenation, hair restoration, advanced aesthetic procedures, clinical & cosmetic dermatology',
+      bio: 'Distinguished expert in clinical dermatology, cosmetic procedures, and advanced laser treatments. Faculty member at major dermatology events. Recipient of the Young Dermatologist Award (IADVL Karnataka, 2023–24).',
+      press: 'Young Dermatologist Award, IADVL Karnataka 2023–24\nFaculty member at major dermatology conferences',
+    },
+    'dr-abhey-shamsunder': {
+      origin: 'scraped',
+      credentials: 'MBBS, MD (Dermatology) — Consultant Dermatologist',
+      yearsExperience: '5+ years',
+      specializations: 'Hair fall management, PRP therapy, medical scalp treatments, dermoscopy-guided assessments',
+      bio: 'Trained at Bangalore Medical College and Research Institute. Focuses on clinical aesthetic dermatology, combining scientific precision with aesthetic sensibility.',
+      press: '',
+    },
+  },
+  treatments: {
+    'laser-hair-removal': {
+      origin: 'scraped',
+      costRange: '',
+      sessionCount: '6–8 sessions',
+      description: 'Uses the Alma Soprano Ice Platinum laser — a triple-wavelength diode laser (755nm, 808nm, 1064nm in one pass) clinically proven safe across Fitzpatrick skin types I–VI, with built-in cooling. Selective photothermolysis targets melanin in the hair shaft, damaging the follicle at the root without harming surrounding skin. Multiple sessions are needed because only 20–30% of follicles are in their active growth phase at any time.',
+      faqText: 'Is laser hair removal permanent? :: It significantly and permanently reduces hair growth in the treated area over the full course of sessions; fine, fresh regrowth years later is normal and touch-ups are optional.\nWhich areas can be treated? :: Face, underarms, arms, legs, bikini line and back — the laser settings are adjusted per area and skin type.\nCan I shave between sessions? :: Yes — shaving is fine between sessions; waxing or plucking is not, since the laser needs the hair root intact.',
+      metaDescription: 'Laser hair removal in Bangalore with the triple-wavelength Alma Soprano Ice, safe for all Indian skin tones. Book a consultation at Pigment Skin & Hair Clinic.',
+    },
+    'hair-fall-treatment': {
+      origin: 'scraped',
+      costRange: '',
+      sessionCount: '3–4 sessions; visible growth in 4–6 months',
+      description: 'Three approaches offered: PRP therapy (concentrated platelets from the patient\'s own blood, injected into the scalp to stimulate regrowth and repair follicles), GFC therapy (a concentrated growth-factor formula for quicker regeneration with fewer sessions), and QR678 (an FDA-approved peptide-rich solution to enhance density and strengthen roots).',
+      faqText: 'Is PRP safe? :: Yes, a safe, non-surgical treatment performed under expert supervision.\nIs PRP painful? :: Mild discomfort; a numbing agent is applied beforehand.\nAre there side effects? :: Minimal risk since treatment uses your own blood — some mild redness or swelling that subsides within hours.\nWhich treatment suits me? :: Decided during consultation based on your specific hair loss pattern.',
+      metaDescription: 'Hair fall treatment in Bangalore — PRP, GFC and QR678 therapy to stimulate regrowth and strengthen roots. Consult Pigment Skin & Hair Clinic\'s dermatologists.',
+    },
+    'pigmentation-treatment': {
+      origin: 'scraped',
+      costRange: '',
+      sessionCount: '3–6 sessions depending on severity',
+      description: 'Two main approaches: laser toning (gently breaks down melanin clusters deep in the skin without damaging surrounding tissue) and chemical peels (exfoliates the outermost pigmented layers, stimulating collagen and cell turnover to reveal fresh skin).',
+      faqText: 'Is pigmentation removal permanent? :: It can be significantly reduced and controlled with proper treatment and maintenance — not a guaranteed one-time permanent fix.\nIs laser treatment safe? :: Yes, safe and effective when performed by trained dermatologists, with minimal downtime.\nAre chemical peels suitable for all skin types? :: Yes, though the specific peel depends on individual needs.\nCan pigmentation come back? :: Treatment reduces it significantly; sun protection and maintenance sessions help sustain results.',
+      metaDescription: 'Pigmentation treatment in Bangalore using laser toning and chemical peels. Reduce dark spots and uneven tone at Pigment Skin & Hair Clinic — book a consultation.',
+    },
+    'prp-hair-treatment': {
+      origin: 'scraped',
+      costRange: '',
+      sessionCount: '3–4 sessions',
+      description: 'A small amount of blood is drawn and processed to concentrate the platelets, which are then injected directly into the scalp to stimulate hair regrowth and repair damaged follicles.',
+      faqText: 'How is PRP different from GFC or QR678? :: All three stimulate regrowth; PRP uses your own concentrated platelets, GFC uses a purified growth-factor concentrate, and QR678 is a peptide-based injectable — your doctor recommends the best fit for your hair loss pattern.\nWhen do I see results? :: Most patients notice reduced shedding within 6–8 weeks and visible new growth by 4–6 months.',
+      metaDescription: 'PRP hair treatment in Bangalore, using your own concentrated platelets to stimulate regrowth. Book a consultation at Pigment Skin & Hair Clinic.',
+    },
+    'acne-treatment': {
+      origin: 'ai-drafted',
+      costRange: '',
+      sessionCount: 'Varies by severity — assessed at consultation',
+      description: 'Active acne is treated with a combination approach tailored to severity and skin type: topical treatments and, where needed, oral medication to address the underlying cause, paired with in-clinic procedures — chemical peels to unclog pores and calm inflammation, and light/laser therapy to reduce acne-causing bacteria. For scarring left behind by past breakouts, see our dedicated approach below: CO2 laser resurfacing, MNRF (microneedling with radiofrequency), and chemical peels to rebuild collagen and even out texture.',
+      faqText: 'What treatments are available for acne? :: Topical creams, oral medications, chemical peels, laser therapy, microdermabrasion and light treatments, tailored to severity.\nCan acne be cured with medicine alone? :: Medication helps significantly, but combining it with lifestyle changes and in-clinic treatment typically works better.\nUntil what age do pimples occur? :: Commonly during puberty, but can persist into adulthood, especially in women due to hormonal factors.\nWill treating active acne also help with existing scars? :: Not directly — active acne and acne scarring need different treatments; scarring is addressed once breakouts are under control.',
+      metaDescription: 'Acne and acne scar treatment in Bangalore — topical, laser and peel options tailored to severity. Consult Pigment Skin & Hair Clinic\'s dermatologists.',
+    },
+    'botox-anti-aging': {
+      origin: 'ai-drafted',
+      costRange: '',
+      sessionCount: 'Results typically last 4–6 months; most patients return twice a year',
+      description: 'Botulinum toxin (Botox) injections relax the small facial muscles responsible for dynamic wrinkles — lines that form from repeated expression, such as forehead lines, frown lines between the brows, and crow\'s feet around the eyes. A fine needle delivers a precise, small dose into the targeted muscle. Initial effects appear within 3–7 days, with full results visible by two weeks.',
+      faqText: 'Is Botox safe? :: Yes, when administered by a trained professional at the correct dose and location — it\'s one of the most extensively studied cosmetic procedures worldwide.\nDoes it hurt? :: Most patients describe a brief pinching sensation; numbing cream is available for sensitive areas.\nWhen will I see results? :: Initial effects begin within 3–7 days, with full results visible by two weeks.\nHow long do results last? :: Typically 4–6 months, varying with individual metabolism and treatment area.\nIs there any downtime? :: None — most patients resume normal activities immediately, though strenuous exercise is usually discouraged for 24 hours.',
+      metaDescription: 'Botox and anti-aging treatment in Bangalore to soften dynamic wrinkles. Book a consultation with Pigment Skin & Hair Clinic\'s dermatologists.',
+    },
+    'hydrafacial': {
+      origin: 'scraped',
+      costRange: '',
+      sessionCount: 'Every 3–6 weeks for optimal results',
+      description: 'Deeply cleanses, exfoliates and infuses the skin with hydration — unclogs pores, removes impurities, nourishes with serums. Suitable for all skin types, zero downtime, results visible immediately. Often paired with Gluta IV Drips or Carbon Facial for a fuller skin-renewal treatment.',
+      faqText: 'Any downtime? :: None — zero downtime.\nCan it be combined with other treatments? :: Yes, commonly paired with Gluta IV Drips or Carbon Facial.\nHow often should I get one? :: Every 3–6 weeks for maintenance, or before a special occasion for an immediate glow.',
+      metaDescription: 'HydraFacial in Bangalore — deep cleansing, exfoliation and hydration with zero downtime. Book at Pigment Skin & Hair Clinic.',
+    },
+    'chemical-peel': {
+      origin: 'scraped',
+      costRange: '',
+      sessionCount: '3–6 sessions depending on concern',
+      description: 'A specially formulated solution is applied to exfoliate the outermost skin layer, stimulating collagen production and cell turnover. Used both for pigmentation (fading pigmented layers) and acne scarring (unclogging pores, fading scars, improving tone).',
+      faqText: 'Will my skin peel visibly afterward? :: Depends on peel strength — lighter peels cause little to no visible flaking, deeper peels may cause a few days of light peeling.\nHow do I care for my skin after a peel? :: Gentle cleansing, daily sunscreen, and avoiding actives (retinol, exfoliants) for the first few days, as advised by your doctor.',
+      metaDescription: 'Chemical peels in Bangalore for pigmentation and acne scarring, tailored to your skin. Book a consultation at Pigment Skin & Hair Clinic.',
+    },
+    'skin-tags': {
+      origin: 'scraped',
+      costRange: '',
+      sessionCount: 'Usually a single session',
+      description: 'Removed using Electro Cautery (a US FDA-approved device). The area is cleansed and numbed, a fine electrical current removes the tag without damaging surrounding skin, and an antibiotic ointment is applied — the treated area scabs and naturally falls off within a week.',
+      faqText: 'Will it grow back? :: Once removed via Electro Cautery it typically doesn\'t regrow, though new tags may appear elsewhere over time.\nIs it painful? :: Well-tolerated with local anesthetic — usually just a mild, brief sensation of heat or tingling.\nSide effects? :: Minimal — slight redness, swelling or a scab that resolves within a few days.',
+      metaDescription: 'Skin tag removal in Bangalore using US FDA-approved Electro Cautery — quick, well-tolerated. Book a consultation at Pigment Skin & Hair Clinic.',
+    },
+  },
+  locations: {
+    'haralur-road': {
+      origin: 'scraped',
+      description: 'The main Pigment Skin & Hair Clinic location, on the 1st Floor of Bineeta Plaza on Haralur Main Road.',
+      landmarks: '1st Floor, Bineeta Plaza, Haralur Main Road, Bangalore, Karnataka 560102',
+      servingAreas: 'Haralur Road, HSR Layout, Bellandur, Sarjapur Road',
+      mapEmbedUrl: '',
+    },
+    'hsr-layout': {
+      origin: 'ai-drafted',
+      description: 'Pigment Skin & Hair Clinic is a short drive from HSR Layout, on Haralur Main Road at the edge of the neighborhood — the closest dermatology clinic offering laser hair removal, pigmentation and hair-fall treatment for HSR residents without crossing town.',
+      landmarks: '[Add: specific HSR sectors/blocks and a landmark or travel-time note — this needs someone who knows the route, not a desk audit]',
+      servingAreas: 'HSR Layout',
+      mapEmbedUrl: '',
+    },
+    'sarjapur-road': {
+      origin: 'ai-drafted',
+      description: 'Pigment Skin & Hair Clinic serves patients along Sarjapur Road from its Haralur Main Road location, offering the same laser, pigmentation and hair-restoration treatments without a trip into central Bangalore.',
+      landmarks: '[Add: specific Sarjapur Road landmarks/junctions and a travel-time note]',
+      servingAreas: 'Sarjapur Road',
+      mapEmbedUrl: '',
+    },
+    'bellandur': {
+      origin: 'ai-drafted',
+      description: 'Pigment Skin & Hair Clinic is easily reachable from Bellandur via Haralur Main Road, serving the area\'s residents with the full range of dermatology and aesthetic treatments.',
+      landmarks: '[Add: specific Bellandur landmarks and a travel-time note]',
+      servingAreas: 'Bellandur',
+      mapEmbedUrl: '',
+    },
+  },
+  faqs: [
+    // Pulled directly from existing treatment pages
+    {question:'Is PRP hair treatment safe?', answer:'Yes — a safe, non-surgical treatment performed under expert supervision, using the patient\'s own blood.', origin:'scraped'},
+    {question:'Is laser hair removal safe for Indian skin tones?', answer:'Yes — the Alma Soprano Ice Platinum laser is clinically proven safe across Fitzpatrick skin types I–VI, the full range found in Indian skin.', origin:'scraped'},
+    {question:'Is pigmentation treatment permanent?', answer:'Pigmentation can be significantly reduced and controlled with proper treatment and ongoing maintenance, but it is not a guaranteed one-time permanent fix.', origin:'scraped'},
+    {question:'Will a removed skin tag grow back?', answer:'Once removed with Electro Cautery it typically does not regrow, though new skin tags may develop elsewhere over time.', origin:'scraped'},
+    {question:'How many sessions does laser hair removal take?', answer:'Typically 6–8 sessions, since only 20–30% of hair follicles are in their active growth phase at any given time.', origin:'scraped'},
+    {question:'What treatments help with acne scarring?', answer:'CO2 laser resurfacing, MNRF (microneedling radiofrequency), and chemical peels — the right mix depends on scar type and severity, decided during consultation.', origin:'scraped'},
+    {question:'Does HydraFacial have any downtime?', answer:'None — it\'s a zero-downtime treatment suitable for all skin types, with results visible immediately.', origin:'scraped'},
+    // Drafted to cover real search intent and common patient questions not yet answered anywhere on the site
+    {question:'How much does treatment cost?', answer:'Pricing depends on the treatment, the number of sessions needed, and your specific skin or hair condition — every plan is different. Book a consultation for an accurate quote tailored to you.', origin:'ai-drafted'},
+    {question:'Do I need a consultation before booking a treatment?', answer:'Yes — every treatment begins with a consultation with one of our dermatologists, who assess your skin or hair condition and recommend the right plan before any procedure is booked.', origin:'ai-drafted'},
+    {question:'Are your treatments safe during pregnancy or breastfeeding?', answer:'Several treatments, including laser-based procedures and certain injectables, are not recommended during pregnancy or breastfeeding. Please tell your doctor at consultation so they can advise on what is safe.', origin:'ai-drafted'},
+    {question:'What should I avoid before a laser or peel session?', answer:'Avoid sun exposure, waxing, tanning, and strong actives like retinol for a few days beforehand — your doctor will give you specific pre-care instructions for your treatment.', origin:'ai-drafted'},
+    {question:'Do you offer treatment packages?', answer:'Yes — most multi-session treatments (laser hair removal, hair-fall therapy, pigmentation treatment) are available as packages, which typically work out more cost-effective than booking single sessions.', origin:'ai-drafted'},
+    {question:'What payment methods do you accept?', answer:'[Needs input: which payment methods — cash, card, UPI, EMI/financing — does the clinic actually accept?]', origin:'ai-drafted'},
+    {question:'Can I combine multiple treatments in one visit?', answer:'Depending on the treatments involved and how your skin tolerates them, some combinations are possible — your doctor will advise what can safely be done together during your consultation.', origin:'ai-drafted'},
+    {question:'How do I book an appointment?', answer:'Call the clinic directly, or book through the website — see the contact details at the top of every page.', origin:'ai-drafted'},
+    {question:'I have sensitive or reactive skin — can I still be treated?', answer:'Yes — our dermatologists tailor the treatment plan and equipment settings to your specific skin type and sensitivity level during your consultation.', origin:'ai-drafted'},
+    {question:'Is there a minimum age for treatments?', answer:'[Needs input: what is the clinic\'s actual minimum-age and guardian-consent policy for cosmetic treatments?]', origin:'ai-drafted'},
+    {question:'How soon will I see results?', answer:'This varies by treatment — some, like HydraFacial, show results immediately, while others, like PRP or laser hair removal, build gradually over several sessions. See each treatment page for specifics.', origin:'ai-drafted'},
+    {question:'Do you use numbing cream for treatments that might hurt?', answer:'Yes, where appropriate — treatments like laser hair removal and PRP use topical numbing to keep the procedure comfortable.', origin:'ai-drafted'},
+    {question:'What is the difference between a dermatologist and a beautician for these treatments?', answer:'All procedures at Pigment are performed under the supervision of qualified, registered dermatologists — not beauticians or technicians alone — which matters for both safety and result quality on medical-grade equipment.', origin:'ai-drafted'},
+  ],
+};
+
+let state = {
+  org: {}, doctors: {},
+  treatments: {}, locations: {},
+  faqs: [], testimonials: [],
+  gallery: [], blog: [],
+  audit: {},
+};
+let activeTab = 'ready';
+let dataLoaded = false;
+
+const TABS = [
+  {id:'ready', label:'Ready to Publish'},
+  {id:'clinic', label:'Clinic'},
+  {id:'doctor', label:'Doctor'},
+  {id:'treatments', label:'Treatments'},
+  {id:'locations', label:'Locations'},
+  {id:'gallery', label:'Before/After'},
+  {id:'faqs', label:'FAQs'},
+  {id:'testimonials', label:'Testimonials'},
+  {id:'blog', label:'Blog'},
+  {id:'audit', label:'Treatment Audit'},
+];
+
+function el(tag, attrs, ...children){
+  const e = document.createElement(tag);
+  for(const k in (attrs||{})){
+    if(k==='class') e.className = attrs[k];
+    else if(k.startsWith('on')) e.addEventListener(k.slice(2), attrs[k]);
+    else e.setAttribute(k, attrs[k]);
+  }
+  children.flat().forEach(c=>{
+    if(c==null) return;
+    e.appendChild(typeof c==='string' ? document.createTextNode(c) : c);
+  });
+  return e;
+}
+
+function fieldFilled(v){ return v && String(v).trim().length > 3; }
+
+function originBadge(origin){
+  const map = {
+    scraped: {label:'From website', cls:'scraped'},
+    'ai-drafted': {label:'AI-drafted — needs review', cls:'ai-drafted'},
+    human: {label:'Your content', cls:'human'},
+  };
+  return map[origin] || map['ai-drafted'];
+}
+
+// ============================================================
+// FIRESTORE DATA LAYER
+// Every write goes through saveDoc/removeDoc, which also drive the
+// "Data last saved" footer status. Collection names, one per tab:
+//   orgInfo/main   — Clinic tab (single doc)
+//   doctors/{id}   — Doctor tab
+//   treatments/{id}— Treatments tab
+//   locations/{id former}— Locations tab
+//   faqs/{id}      — FAQs tab
+//   testimonials/{id} — Testimonials tab
+//   gallery/{id}   — Before/After tab
+//   blogPosts/{id} — Blog tab
+//   auditItems/{id}— Treatment Audit tab
+// ============================================================
+function docRef(collectionName, id){ return doc(firestore, collectionName, id); }
+
+const syncStatusEl = document.getElementById('syncStatus');
+function setSyncStatus(kind, detail){
+  const time = new Date().toLocaleTimeString();
+  if(kind==='ok'){
+    syncStatusEl.textContent = `Data last saved ${time}`;
+    syncStatusEl.style.color = 'var(--good)';
+  } else {
+    syncStatusEl.textContent = `Save failed at ${time}${detail ? ': ' + detail : ''} — check your connection and try again.`;
+    syncStatusEl.style.color = 'var(--crit)';
+  }
+}
+
+async function saveDoc(collectionName, id, data){
+  try{
+    await setDoc(docRef(collectionName, id), data);
+    setSyncStatus('ok');
+  } catch(e){
+    console.error('saveDoc failed', collectionName, id, e);
+    setSyncStatus('error', e.message);
+  }
+}
+
+async function removeDoc(collectionName, id){
+  try{
+    await deleteDoc(docRef(collectionName, id));
+    setSyncStatus('ok');
+  } catch(e){
+    console.error('removeDoc failed', collectionName, id, e);
+    setSyncStatus('error', e.message);
+  }
+}
+
+// Firebase Storage upload — used everywhere the old claude.ai `assets.upload()`
+// was used. Returns a public download URL (stored directly on the record,
+// e.g. `photoUrl`) instead of an internal asset id.
+async function uploadImageFile(file, folder){
+  const safeName = file.name.replace(/[^a-zA-Z0-9_.-]+/g, '_');
+  const path = `uploads/${folder}/${Date.now()}_${safeName}`;
+  const fileRef = ref(storage, path);
+  await uploadBytes(fileRef, file);
+  return await getDownloadURL(fileRef);
+}
+
+function uploadField(container, currentUrl, onUploaded, folder){
+  const box = el('div', {class:'upload-box' + (currentUrl ? ' has-image':'')});
+  if(currentUrl){
+    box.appendChild(el('img', {src:currentUrl, alt:''}));
+  }
+  const input = el('input', {type:'file', accept:'image/png,image/jpeg,image/webp,image/gif'});
+  input.addEventListener('change', async ()=>{
+    if(!input.files[0]) return;
+    input.disabled = true;
+    try{
+      const url = await uploadImageFile(input.files[0], folder);
+      onUploaded(url);
+    } catch(e){
+      console.error(e);
+      setSyncStatus('error', 'image upload failed');
+    }
+    input.disabled = false;
+  });
+  box.appendChild(input);
+  box.appendChild(el('div', {class:'upload-hint'}, currentUrl ? 'Uploaded — pick another file to replace' : 'PNG, JPG or WebP'));
+  container.appendChild(box);
+  return box;
+}
+
+// Appended to every card: shows where the content came from, and a Verify
+// button that marks it ready for the live website. Editing any field after
+// verifying un-verifies it automatically — every change needs a fresh check.
+function renderVerifyBar(card, record, collectionName, id, buildPayload){
+  const bar = el('div', {class:'verify-row'});
+  const badge = originBadge(record.origin || 'ai-drafted');
+  bar.appendChild(el('span', {class:'origin-badge '+badge.cls}, badge.label));
+  if(record.verified){
+    bar.appendChild(el('span', {class:'verified-badge'}, '✓ Verified — ready for the website'));
+  } else {
+    bar.appendChild(el('button', {class:'btn verify', onclick: async ()=>{
+      record.verified = true;
+      record.verifiedAt = new Date().toISOString();
+      await saveDoc(collectionName, id, buildPayload());
+      render();
+    }}, 'Verify — ready for website'));
+  }
+  card.appendChild(bar);
+}
+
+function computeProgress(){
+  let total = 0, done = 0;
+  // org: 5 fields
+  ['clinicName','tagline','phone','email','hours'].forEach(k=>{ total++; if(fieldFilled(state.org[k])) done++; });
+  // doctors: 4 fields each
+  DOCTORS.forEach(doc=>{
+    const d = state.doctors[doc.id] || {};
+    ['credentials','yearsExperience','bio','specializations'].forEach(k=>{ total++; if(fieldFilled(d[k])) done++; });
+  });
+  // treatments: 2 core fields x 9 — pricing is deliberately not published, so it isn't required
+  TREATMENTS.forEach(t=>{
+    const d = state.treatments[t.id] || {};
+    ['sessionCount','description'].forEach(k=>{ total++; if(fieldFilled(d[k])) done++; });
+  });
+  // locations: 3 core fields x 4
+  LOCATIONS.forEach(l=>{
+    const d = state.locations[l.id] || {};
+    ['description','landmarks','servingAreas'].forEach(k=>{ total++; if(fieldFilled(d[k])) done++; });
+  });
+  // faqs: count as 5 "slots"
+  total += 5; done += Math.min(5, state.faqs.length);
+  // testimonials: count as 3 "slots"
+  total += 3; done += Math.min(3, state.testimonials.length);
+  return {total, done, pct: total ? Math.round(100*done/total) : 0};
+}
+
+function renderProgress(){
+  const {done, total, pct} = computeProgress();
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${done} of ${total} fields filled`;
+  document.getElementById('progressPct').textContent = pct + '%';
+}
+
+function sectionStatus(filledCount, totalCount){
+  if(filledCount === 0) return 'empty';
+  if(filledCount >= totalCount) return 'done';
+  return 'partial';
+}
+
+function renderTabs(){
+  const nav = document.getElementById('tabs');
+  nav.innerHTML = '';
+  TABS.forEach(t=>{
+    let chip = '';
+    if(t.id==='doctor'){
+      const n = DOCTORS.filter(doc=>{ const d=state.doctors[doc.id]||{}; return fieldFilled(d.bio); }).length;
+      chip = `${n}/${DOCTORS.length}`;
+    } else if(t.id==='treatments'){
+      const n = TREATMENTS.filter(tr=>{ const d=state.treatments[tr.id]||{}; return fieldFilled(d.description); }).length;
+      chip = `${n}/${TREATMENTS.length}`;
+    } else if(t.id==='locations'){
+      const n = LOCATIONS.filter(l=>{ const d=state.locations[l.id]||{}; return fieldFilled(d.description); }).length;
+      chip = `${n}/${LOCATIONS.length}`;
+    } else if(t.id==='faqs'){ chip = String(state.faqs.length); }
+    else if(t.id==='testimonials'){ chip = String(state.testimonials.length); }
+    else if(t.id==='gallery'){ chip = String(state.gallery.length); }
+    else if(t.id==='blog'){ chip = String(state.blog.length); }
+    const btn = el('button', {class: t.id===activeTab?'active':'', onclick:()=>{activeTab=t.id; render();}},
+      t.label, chip ? el('span',{class:'chip'}, chip) : null);
+    nav.appendChild(btn);
+  });
+}
+
+// ============================================================
+// CLINIC TAB
+// ============================================================
+function renderClinic(main){
+  main.appendChild(el('h2', {}, 'Clinic information'));
+  main.appendChild(el('p', {class:'section-dek'}, 'The facts every page on the site references — footer, contact page, and the LocalBusiness schema block.'));
+
+  const card = el('div', {class:'card'});
+  const filled = ['clinicName','tagline','phone','email','hours'].filter(k=>fieldFilled(state.org[k])).length;
+  card.appendChild(el('div', {class:'card-head'}, el('h3',{},'Basic details'), el('span',{class:'status-pill '+sectionStatus(filled,5)}, filled+'/5 filled')));
+
+  const mkInput = (labelText, key, isArea) => {
+    card.appendChild(el('label',{}, labelText));
+    const inp = el(isArea?'textarea':'input', isArea?{}:{type:'text'});
+    inp.value = state.org[key] || '';
+    inp.addEventListener('input', ()=>{ state.org[key] = inp.value; state.org.verified = false; });
+    card.appendChild(inp);
+  };
+  mkInput('Clinic name', 'clinicName');
+  mkInput('Tagline (one line, used in meta description)', 'tagline');
+  const row = el('div', {class:'field-row'});
+  const c1 = el('div'); c1.appendChild(el('label',{},'Phone')); const p1=el('input',{type:'text'}); p1.value=state.org.phone||''; p1.addEventListener('input',()=>{state.org.phone=p1.value; state.org.verified=false;}); c1.appendChild(p1);
+  const c2 = el('div'); c2.appendChild(el('label',{},'Email')); const p2=el('input',{type:'text'}); p2.value=state.org.email||''; p2.addEventListener('input',()=>{state.org.email=p2.value; state.org.verified=false;}); c2.appendChild(p2);
+  row.appendChild(c1); row.appendChild(c2);
+  card.appendChild(row);
+  mkInput('Opening hours (e.g. Mon–Sat 10am–8pm, Sun closed)', 'hours');
+  mkInput('Google Business Profile — "read reviews" link (your Google Maps listing URL)', 'googleReviewsUrl');
+  mkInput('Google Business Profile — "leave a review" short link (from GBP → Get more reviews; format g.page/r/…/review)', 'googleLeaveReviewUrl');
+  card.appendChild(el('p', {style:'font-size:12.5px;color:var(--ink-3);margin:-8px 0 16px;'}, 'Used sitewide by default — every doctor, treatment, and location page links out to these. A location below can override the "read reviews" link if it has its own separate Google Business Profile listing.'));
+
+  const logoWrap = el('div');
+  card.appendChild(el('label',{},'Logo'));
+  uploadField(logoWrap, state.org.logoUrl, (url)=>{ state.org.logoUrl=url; saveDoc('orgInfo','main', state.org); render(); }, 'org');
+  card.appendChild(logoWrap);
+
+  const msg = el('span',{class:'save-msg'},'');
+  card.appendChild(el('div',{class:'btn-row'},
+    el('button',{class:'btn primary', onclick: async ()=>{ await saveDoc('orgInfo','main', state.org); msg.textContent='Saved'; renderTabs(); renderProgress(); setTimeout(()=>msg.textContent='',2000); }}, 'Save'),
+    msg
+  ));
+  renderVerifyBar(card, state.org, 'orgInfo', 'main', ()=>state.org);
+  main.appendChild(card);
+}
+
+// ============================================================
+// DOCTOR TAB
+// ============================================================
+function renderDoctor(main){
+  main.appendChild(el('h2', {}, 'Doctors'));
+  main.appendChild(el('p', {class:'section-dek'}, 'Feeds /doctor/&lt;name&gt; pages — the single highest-priority pages from the SEO Report. Real bios already exist on pigmentclinics.in/about-us/, just as plain paragraph text with no schema markup and no per-doctor page — that\'s the gap to close, not a from-scratch write.'));
+
+  DOCTORS.forEach(doc=>{
+    const d = state.doctors[doc.id] || {};
+    const card = el('div', {class:'card'});
+    const filled = ['credentials','yearsExperience','bio','specializations'].filter(k=>fieldFilled(d[k])).length;
+    card.appendChild(el('div', {class:'card-head'}, el('h3',{}, doc.name), el('span',{class:'status-pill '+sectionStatus(filled,4)}, filled+'/4 filled')));
+
+    const mk = (labelText, key, isArea) => {
+      card.appendChild(el('label',{}, labelText));
+      const inp = el(isArea?'textarea':'input', isArea?{}:{type:'text'});
+      inp.value = d[key] || '';
+      inp.addEventListener('input', ()=>{ d[key] = inp.value; d.verified = false; });
+      card.appendChild(inp);
+    };
+    mk('Credentials (e.g. MD, MBBS, DVL)', 'credentials');
+    mk('Years in practice', 'yearsExperience');
+    mk('Specializations (comma-separated)', 'specializations');
+    mk('Bio (a few paragraphs — this becomes the page copy)', 'bio', true);
+    mk('Press mentions / affiliations, one per line', 'press', true);
+    mk('Meta description (Google search snippet — 150–160 characters)', 'metaDescription', true);
+
+    const photoWrap = el('div');
+    card.appendChild(el('label',{},'Photo'));
+    uploadField(photoWrap, d.photoUrl, (url)=>{ d.photoUrl=url; state.doctors[doc.id]=d; saveDoc('doctors', doc.id, {...d, name:doc.name}); render(); }, 'doctors/'+doc.id);
+    card.appendChild(photoWrap);
+
+    const msg = el('span',{class:'save-msg'},'');
+    card.appendChild(el('div',{class:'btn-row'},
+      el('button',{class:'btn primary', onclick: async ()=>{ state.doctors[doc.id]=d; await saveDoc('doctors', doc.id, {...d, name:doc.name}); msg.textContent='Saved'; renderTabs(); renderProgress(); setTimeout(()=>msg.textContent='',2000); }}, 'Save'),
+      msg
+    ));
+    renderVerifyBar(card, d, 'doctors', doc.id, ()=>({...d, name:doc.name}));
+    main.appendChild(card);
+  });
+}
+
+// ============================================================
+// TREATMENTS TAB
+// ============================================================
+function renderTreatments(main){
+  main.appendChild(el('h2', {}, 'Treatments'));
+  main.appendChild(el('p', {class:'section-dek'}, 'One card per treatment page from the SEO Report\'s sitemap. Sessions and a real description are what\'s missing on the current site. Pricing is deliberately not published — Kosmoderma, the strongest organic performer in the keyword battle, doesn\'t publish it either, and it protects the doctor-recommendation close (the biggest lever in the whole Growth Diagnostic).'));
+
+  const addCard = el('div', {class:'card', style:'margin-bottom:20px;'});
+  addCard.appendChild(el('label',{},'Add a new treatment (not one of the 9 above — this creates a fresh treatment record, and it becomes selectable everywhere a treatment is tagged: Before/After, Blog, FAQs)'));
+  const addRow = el('div', {class:'btn-row'});
+  const nameInput = el('input',{type:'text', placeholder:'e.g. Microneedling'});
+  nameInput.style.cssText = 'flex:1;font-family:var(--font-body);font-size:14px;color:var(--ink);background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;';
+  const addMsg = el('span',{class:'save-msg'},'');
+  addRow.appendChild(nameInput);
+  addRow.appendChild(el('button',{class:'btn primary', onclick: async ()=>{
+    const name = nameInput.value.trim();
+    if(!name){ addMsg.textContent='Enter a name first'; setTimeout(()=>addMsg.textContent='',2000); return; }
+    const id = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 't'+Date.now();
+    if(TREATMENTS.find(t=>t.id===id)){ addMsg.textContent='That treatment already exists'; setTimeout(()=>addMsg.textContent='',2000); return; }
+    TREATMENTS.push({id, name});
+    const d = {name, origin:'human', verified:false};
+    state.treatments[id] = d;
+    await saveDoc('treatments', id, d);
+    nameInput.value='';
+    render();
+  }}, '+ Add treatment'));
+  addRow.appendChild(addMsg);
+  addCard.appendChild(addRow);
+  main.appendChild(addCard);
+
+  TREATMENTS.forEach(t=>{
+    const d = state.treatments[t.id] || {};
+    const card = el('div', {class:'card'});
+    const filled = ['sessionCount','description'].filter(k=>fieldFilled(d[k])).length;
+    card.appendChild(el('div', {class:'card-head'}, el('h3',{}, t.name), el('span',{class:'status-pill '+sectionStatus(filled,2)}, filled+'/2 filled')));
+
+    const row = el('div', {class:'field-row'});
+    const c1 = el('div'); c1.appendChild(el('label',{},'Pricing note (optional — never a number; e.g. "consultation-based")')); const i1=el('input',{type:'text'}); i1.value=d.costRange||''; i1.addEventListener('input',()=>{d.costRange=i1.value; d.verified=false;}); c1.appendChild(i1);
+    const c2 = el('div'); c2.appendChild(el('label',{},'Sessions typically needed')); const i2=el('input',{type:'text'}); i2.value=d.sessionCount||''; i2.addEventListener('input',()=>{d.sessionCount=i2.value; d.verified=false;}); c2.appendChild(i2);
+    row.appendChild(c1); row.appendChild(c2);
+    card.appendChild(row);
+
+    card.appendChild(el('label',{},'Description (what it is, how it works, why Pigment\'s approach — becomes the page copy)'));
+    const desc = el('textarea',{}); desc.value = d.description || ''; desc.addEventListener('input',()=>{d.description=desc.value; d.verified=false;});
+    card.appendChild(desc);
+
+    card.appendChild(el('label',{},'FAQ for this treatment (one Q&A pair per line, formatted as "Question? :: Answer")'));
+    const faq = el('textarea',{}); faq.value = d.faqText || ''; faq.addEventListener('input',()=>{d.faqText=faq.value; d.verified=false;});
+    card.appendChild(faq);
+
+    card.appendChild(el('label',{},'Meta description (the snippet shown in Google search results — aim for 150–160 characters)'));
+    const meta = el('textarea',{}); meta.value = d.metaDescription || ''; meta.style.minHeight='44px'; meta.addEventListener('input',()=>{d.metaDescription=meta.value; d.verified=false;});
+    card.appendChild(meta);
+
+    const photoWrap = el('div');
+    card.appendChild(el('label',{},'Before/after or treatment photo'));
+    uploadField(photoWrap, d.photoUrl, (url)=>{ d.photoUrl=url; state.treatments[t.id]=d; saveDoc('treatments', t.id, {...d, name:t.name}); render(); }, 'treatments/'+t.id);
+    card.appendChild(photoWrap);
+
+    const msg = el('span',{class:'save-msg'},'');
+    card.appendChild(el('div',{class:'btn-row'},
+      el('button',{class:'btn primary', onclick: async ()=>{ state.treatments[t.id]=d; await saveDoc('treatments', t.id, {...d, name:t.name}); msg.textContent='Saved'; renderTabs(); renderProgress(); setTimeout(()=>msg.textContent='',2000); }}, 'Save'),
+      msg
+    ));
+    renderVerifyBar(card, d, 'treatments', t.id, ()=>({...d, name:t.name}));
+    main.appendChild(card);
+  });
+}
+
+// ============================================================
+// LOCATIONS TAB
+// ============================================================
+function renderLocations(main){
+  main.appendChild(el('h2', {}, 'Locations'));
+  main.appendChild(el('p', {class:'section-dek'}, 'The four location pages the SEO Report flags as open territory — nobody, not even Oliva or Kosmoderma, currently ranks for these. Real, non-templated content per neighborhood is what wins them.'));
+
+  LOCATIONS.forEach(l=>{
+    const d = state.locations[l.id] || {};
+    const card = el('div', {class:'card'});
+    const filled = ['description','landmarks','servingAreas'].filter(k=>fieldFilled(d[k])).length;
+    card.appendChild(el('div', {class:'card-head'}, el('h3',{}, l.name), el('span',{class:'status-pill '+sectionStatus(filled,3)}, filled+'/3 filled')));
+
+    card.appendChild(el('label',{},'Description (why this neighborhood, what makes this page genuinely local — not a copy of the others)'));
+    const desc = el('textarea',{}); desc.value = d.description || ''; desc.addEventListener('input',()=>{d.description=desc.value; d.verified=false;});
+    card.appendChild(desc);
+
+    card.appendChild(el('label',{},'Nearby landmarks / parking notes'));
+    const lm = el('textarea',{}); lm.value = d.landmarks || ''; lm.addEventListener('input',()=>{d.landmarks=lm.value; d.verified=false;});
+    card.appendChild(lm);
+
+    card.appendChild(el('label',{},'Areas/blocks this location serves'));
+    const sv = el('input',{type:'text'}); sv.value = d.servingAreas || ''; sv.addEventListener('input',()=>{d.servingAreas=sv.value; d.verified=false;});
+    card.appendChild(sv);
+
+    card.appendChild(el('label',{},'Google Maps embed URL (optional)'));
+    const mp = el('input',{type:'text'}); mp.value = d.mapEmbedUrl || ''; mp.addEventListener('input',()=>{d.mapEmbedUrl=mp.value; d.verified=false;});
+    card.appendChild(mp);
+
+    card.appendChild(el('label',{},'This location\'s own Google reviews link (optional — only if it has a separate Google Business Profile from the main clinic; leave blank to use the clinic-wide one)'));
+    const gr = el('input',{type:'text'}); gr.value = d.googleReviewsUrl || ''; gr.addEventListener('input',()=>{d.googleReviewsUrl=gr.value; d.verified=false;});
+    card.appendChild(gr);
+
+    card.appendChild(el('label',{},'Meta description (Google search snippet — 150–160 characters)'));
+    const metaL = el('textarea',{}); metaL.style.minHeight='44px'; metaL.value = d.metaDescription || ''; metaL.addEventListener('input',()=>{d.metaDescription=metaL.value; d.verified=false;});
+    card.appendChild(metaL);
+
+    const photoWrap = el('div');
+    card.appendChild(el('label',{},'Photo of this location'));
+    uploadField(photoWrap, d.photoUrl, (url)=>{ d.photoUrl=url; state.locations[l.id]=d; saveDoc('locations', l.id, {...d, name:l.name}); render(); }, 'locations/'+l.id);
+    card.appendChild(photoWrap);
+
+    const msg = el('span',{class:'save-msg'},'');
+    card.appendChild(el('div',{class:'btn-row'},
+      el('button',{class:'btn primary', onclick: async ()=>{ state.locations[l.id]=d; await saveDoc('locations', l.id, {...d, name:l.name}); msg.textContent='Saved'; renderTabs(); renderProgress(); setTimeout(()=>msg.textContent='',2000); }}, 'Save'),
+      msg
+    ));
+    renderVerifyBar(card, d, 'locations', l.id, ()=>({...d, name:l.name}));
+    main.appendChild(card);
+  });
+}
+
+// A single tagging control shared by any record that should attach to one
+// treatment, doctor, or location (or none — "General / clinic-wide"). Value
+// format: "treatment:<id>" / "doctor:<id>" / "location:<id>" / "" (general).
+function buildTagSelect(currentTag, onChange){
+  const sel = el('select',{}); sel.style.cssText='width:100%;font-family:var(--font-body);font-size:14px;color:var(--ink);background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;';
+  const opt0 = el('option',{value:''},'General / clinic-wide'); if(!currentTag) opt0.setAttribute('selected','selected'); sel.appendChild(opt0);
+  const groups = [['Treatment', TREATMENTS], ['Doctor', DOCTORS], ['Location', LOCATIONS]];
+  groups.forEach(([label, list])=>{
+    const og = el('optgroup',{label});
+    list.forEach(item=>{
+      const value = label.toLowerCase()+':'+item.id;
+      const opt = el('option',{value}, item.name);
+      if(currentTag===value) opt.setAttribute('selected','selected');
+      og.appendChild(opt);
+    });
+    sel.appendChild(og);
+  });
+  sel.addEventListener('change',()=>onChange(sel.value));
+  return sel;
+}
+function tagLabel(tag){
+  if(!tag) return 'General / clinic-wide';
+  const [kind,id] = tag.split(':');
+  const list = kind==='treatment'?TREATMENTS : kind==='doctor'?DOCTORS : kind==='location'?LOCATIONS : [];
+  return (list.find(x=>x.id===id)||{}).name || tag;
+}
+
+// ============================================================
+// FAQS TAB
+// ============================================================
+function renderFaqs(main){
+  main.appendChild(el('h2', {}, 'Sitewide FAQs'));
+  main.appendChild(el('p', {class:'section-dek'}, 'Feeds the /faq hub and FAQPage schema — the cheapest way to appear in "People Also Ask" and get cited by AI answer engines. Tag each FAQ so it also surfaces on the treatment, doctor, or location page it actually belongs to, not just the sitewide hub. Aim for at least 8–10 real patient questions.'));
+
+  const card = el('div', {class:'card'});
+  if(state.faqs.length===0){
+    card.appendChild(el('div',{class:'empty-state'}, 'No FAQs yet — add the first one below.'));
+  }
+  state.faqs.forEach((f,i)=>{
+    const item = el('div', {class:'list-item'});
+    item.appendChild(el('label',{},'Question '+(i+1)));
+    const q = el('input',{type:'text'}); q.value=f.question||''; q.addEventListener('input',()=>{f.question=q.value; f.verified=false;});
+    item.appendChild(q);
+    item.appendChild(el('label',{},'Answer'));
+    const a = el('textarea',{}); a.value=f.answer||''; a.addEventListener('input',()=>{f.answer=a.value; f.verified=false;});
+    item.appendChild(a);
+    item.appendChild(el('label',{},'Tag — which page should this also appear on'));
+    item.appendChild(buildTagSelect(f.tag||'', (v)=>{ f.tag=v; f.verified=false; }));
+    item.appendChild(el('div',{class:'btn-row'},
+      el('button',{class:'btn primary', onclick: async ()=>{ await saveDoc('faqs', f.id, f); renderTabs(); renderProgress(); }}, 'Save'),
+      el('button',{class:'btn danger', onclick: async ()=>{ await removeDoc('faqs', f.id); state.faqs.splice(i,1); render(); }}, 'Delete')
+    ));
+    renderVerifyBar(item, f, 'faqs', f.id, ()=>f);
+    card.appendChild(item);
+  });
+  card.appendChild(el('div',{class:'add-row'}, el('button',{class:'btn', onclick: async ()=>{
+    const id = 'f'+Date.now();
+    const f = {id, question:'', answer:'', tag:'', origin:'human', verified:false};
+    state.faqs.push(f);
+    await saveDoc('faqs', id, f);
+    render();
+  }}, '+ Add FAQ')));
+  main.appendChild(card);
+}
+
+// ============================================================
+// TESTIMONIALS TAB
+// ============================================================
+function renderTestimonials(main){
+  main.appendChild(el('h2', {}, 'Testimonials'));
+  main.appendChild(el('p', {class:'section-dek'}, 'Real patient stories with documented consent — used on treatment pages and Instagram/YouTube content. Only add someone who has actually agreed to be featured.'));
+
+  const card = el('div', {class:'card'});
+  if(state.testimonials.length===0){
+    card.appendChild(el('div',{class:'empty-state'}, 'No testimonials yet — add the first one below.'));
+  }
+  state.testimonials.forEach((t,i)=>{
+    const item = el('div', {class:'list-item'});
+    const row = el('div', {class:'field-row'});
+    const c1=el('div'); c1.appendChild(el('label',{},'Patient name or initials')); const n=el('input',{type:'text'}); n.value=t.patientName||''; n.addEventListener('input',()=>t.patientName=n.value); c1.appendChild(n);
+    const c2=el('div'); c2.appendChild(el('label',{},'Treatment')); const tr=el('input',{type:'text'}); tr.value=t.treatment||''; tr.addEventListener('input',()=>t.treatment=tr.value); c2.appendChild(tr);
+    row.appendChild(c1); row.appendChild(c2);
+    item.appendChild(row);
+    item.appendChild(el('label',{},'Quote'));
+    const q = el('textarea',{}); q.value=t.quote||''; q.addEventListener('input',()=>t.quote=q.value);
+    item.appendChild(q);
+    const consentLabel = el('label',{style:'display:flex;align-items:center;gap:8px;font-family:var(--font-body);text-transform:none;font-size:13px;color:var(--ink-2);margin-top:12px;'});
+    const cb = el('input',{type:'checkbox'}); cb.checked = !!t.consentConfirmed; cb.style.width='auto'; cb.addEventListener('change',()=>{ t.consentConfirmed=cb.checked; if(!cb.checked) t.verified=false; render(); });
+    consentLabel.appendChild(cb);
+    consentLabel.appendChild(document.createTextNode('Patient has given consent to be featured publicly'));
+    item.appendChild(consentLabel);
+    item.appendChild(el('div',{class:'btn-row'},
+      el('button',{class:'btn primary', onclick: async ()=>{ await saveDoc('testimonials', t.id, t); renderTabs(); renderProgress(); }}, 'Save'),
+      el('button',{class:'btn danger', onclick: async ()=>{ await removeDoc('testimonials', t.id); state.testimonials.splice(i,1); render(); }}, 'Delete')
+    ));
+    if(!t.consentConfirmed){
+      item.appendChild(el('p', {style:'font-size:12px;color:var(--crit);margin-top:10px;'}, 'Check consent above before verifying — nothing without confirmed consent should go live.'));
+    } else {
+      renderVerifyBar(item, t, 'testimonials', t.id, ()=>t);
+    }
+    card.appendChild(item);
+  });
+  card.appendChild(el('div',{class:'add-row'}, el('button',{class:'btn', onclick: async ()=>{
+    const id = 't'+Date.now();
+    const t = {id, patientName:'', treatment:'', quote:'', consentConfirmed:false, origin:'human', verified:false};
+    state.testimonials.push(t);
+    await saveDoc('testimonials', id, t);
+    render();
+  }}, '+ Add testimonial')));
+  main.appendChild(card);
+}
+
+// ============================================================
+// BEFORE/AFTER GALLERY TAB
+// ============================================================
+function renderGallery(main){
+  main.appendChild(el('h2', {}, 'Before / after gallery'));
+  main.appendChild(el('p', {class:'section-dek'}, 'Side-by-side photos, tagged by treatment — not by doctor, matching how the results gallery is linked from both doctor pages. Every entry needs confirmed consent before it can be verified.'));
+
+  const card = el('div', {class:'card'});
+  if(state.gallery.length===0){
+    card.appendChild(el('div',{class:'empty-state'}, 'No before/after pairs yet — add the first one below.'));
+  }
+  state.gallery.forEach((g,i)=>{
+    const item = el('div', {class:'list-item'});
+    item.appendChild(el('label',{},'Treatment'));
+    const sel = el('select',{}); sel.style.cssText='width:100%;font-family:var(--font-body);font-size:14px;color:var(--ink);background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;';
+    sel.appendChild(el('option',{value:''},'— choose a treatment —'));
+    TREATMENTS.forEach(t=>{ const opt = el('option',{value:t.id}, t.name); if(g.treatmentId===t.id) opt.setAttribute('selected','selected'); sel.appendChild(opt); });
+    sel.addEventListener('change',()=>{ g.treatmentId=sel.value; g.verified=false; });
+    item.appendChild(sel);
+
+    const row = el('div', {class:'field-row', style:'margin-top:14px;'});
+    const c1 = el('div'); c1.appendChild(el('label',{},'Before photo'));
+    uploadField(c1, g.beforeUrl, (url)=>{ g.beforeUrl=url; g.verified=false; saveDoc('gallery', g.id, g); render(); }, 'gallery/'+g.id+'/before');
+    const c2 = el('div'); c2.appendChild(el('label',{},'After photo'));
+    uploadField(c2, g.afterUrl, (url)=>{ g.afterUrl=url; g.verified=false; saveDoc('gallery', g.id, g); render(); }, 'gallery/'+g.id+'/after');
+    row.appendChild(c1); row.appendChild(c2);
+    item.appendChild(row);
+
+    item.appendChild(el('label',{},'Caption (optional — e.g. "6 sessions, laser hair removal")'));
+    const cap = el('input',{type:'text'}); cap.value = g.caption||''; cap.addEventListener('input',()=>{g.caption=cap.value; g.verified=false;});
+    item.appendChild(cap);
+
+    const consentLabel = el('label',{style:'display:flex;align-items:center;gap:8px;font-family:var(--font-body);text-transform:none;font-size:13px;color:var(--ink-2);margin-top:12px;'});
+    const cb = el('input',{type:'checkbox'}); cb.checked = !!g.consentConfirmed; cb.style.width='auto'; cb.addEventListener('change',()=>{ g.consentConfirmed=cb.checked; if(!cb.checked) g.verified=false; render(); });
+    consentLabel.appendChild(cb);
+    consentLabel.appendChild(document.createTextNode('Patient has given consent for these photos to be shown publicly'));
+    item.appendChild(consentLabel);
+
+    const msg = el('span',{class:'save-msg'},'');
+    item.appendChild(el('div',{class:'btn-row'},
+      el('button',{class:'btn primary', onclick: async ()=>{ await saveDoc('gallery', g.id, g); msg.textContent='Saved'; renderTabs(); setTimeout(()=>msg.textContent='',2000); }}, 'Save'),
+      el('button',{class:'btn danger', onclick: async ()=>{ await removeDoc('gallery', g.id); state.gallery.splice(i,1); render(); }}, 'Delete'),
+      msg
+    ));
+    if(!g.consentConfirmed){
+      item.appendChild(el('p', {style:'font-size:12px;color:var(--crit);margin-top:10px;'}, 'Check consent above before verifying — nothing without confirmed consent should go live.'));
+    } else {
+      renderVerifyBar(item, g, 'gallery', g.id, ()=>g);
+    }
+    card.appendChild(item);
+  });
+  card.appendChild(el('div',{class:'add-row'}, el('button',{class:'btn', onclick: async ()=>{
+    const id = 'g'+Date.now();
+    const g = {id, treatmentId:'', caption:'', consentConfirmed:false, origin:'human', verified:false};
+    state.gallery.push(g);
+    await saveDoc('gallery', id, g);
+    render();
+  }}, '+ Add before/after pair')));
+  main.appendChild(card);
+}
+
+function scanForEntityLinks(text){
+  if(!text) return [];
+  const registry = [
+    ...TREATMENTS.map(t=>({type:'Treatment', name:t.name, id:t.id})),
+    ...DOCTORS.map(d=>({type:'Doctor', name:d.name, id:d.id})),
+    ...LOCATIONS.map(l=>({type:'Location', name:l.name, id:l.id})),
+  ];
+  const lower = text.toLowerCase();
+  const found = [];
+  registry.forEach(r=>{
+    const idx = lower.indexOf(r.name.toLowerCase());
+    if(idx !== -1) found.push({...r, firstIndex: idx});
+  });
+  found.sort((a,b)=>a.firstIndex-b.firstIndex);
+  return found;
+}
+
+// ============================================================
+// BLOG TAB
+// ============================================================
+function renderBlog(main){
+  main.appendChild(el('h2', {}, 'Blog posts'));
+  main.appendChild(el('p', {class:'section-dek'}, 'Paste a draft, tag which treatment it primarily supports, and use Analyze to find exact-name mentions of treatments, doctors, or locations worth linking on first mention. This only finds exact-phrase matches — review the rest by eye.'));
+
+  const card = el('div', {class:'card'});
+  if(state.blog.length===0){
+    card.appendChild(el('div',{class:'empty-state'}, 'No blog posts yet — add the first one below.'));
+  }
+  state.blog.forEach((b,i)=>{
+    const item = el('div', {class:'list-item'});
+    item.appendChild(el('label',{},'Title'));
+    const title = el('input',{type:'text'}); title.value=b.title||''; title.addEventListener('input',()=>{b.title=title.value; b.verified=false;});
+    item.appendChild(title);
+
+    item.appendChild(el('label',{},'Primary treatment this post supports'));
+    const sel = el('select',{}); sel.style.cssText='width:100%;font-family:var(--font-body);font-size:14px;color:var(--ink);background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;';
+    sel.appendChild(el('option',{value:''},'— choose a treatment —'));
+    TREATMENTS.forEach(t=>{ const opt = el('option',{value:t.id}, t.name); if(b.treatmentId===t.id) opt.setAttribute('selected','selected'); sel.appendChild(opt); });
+    sel.addEventListener('change',()=>{ b.treatmentId=sel.value; b.verified=false; });
+    item.appendChild(sel);
+
+    item.appendChild(el('label',{},'Body text'));
+    const body = el('textarea',{}); body.style.minHeight='160px'; body.value=b.bodyText||''; body.addEventListener('input',()=>{b.bodyText=body.value; b.verified=false;});
+    item.appendChild(body);
+
+    item.appendChild(el('label',{},'Meta description'));
+    const meta = el('textarea',{}); meta.style.minHeight='44px'; meta.value=b.metaDescription||''; meta.addEventListener('input',()=>{b.metaDescription=meta.value; b.verified=false;});
+    item.appendChild(meta);
+
+    const resultsBox = el('div', {style:'margin-top:14px;'});
+    item.appendChild(el('div',{class:'btn-row', style:'margin-top:0;'},
+      el('button',{class:'btn', onclick: ()=>{
+        resultsBox.innerHTML = '';
+        const hits = scanForEntityLinks(b.bodyText);
+        if(hits.length===0){
+          resultsBox.appendChild(el('p',{style:'font-size:12.5px;color:var(--ink-3);'}, 'No exact-name mentions found. That\'s fine — it just means nothing to auto-link; add links by hand if relevant.'));
+        } else {
+          const seen = new Set();
+          hits.forEach(h=>{
+            if(seen.has(h.name)) return;
+            seen.add(h.name);
+            resultsBox.appendChild(el('div', {style:'font-size:12.5px;color:var(--ink-2);padding:6px 0;border-bottom:1px solid var(--border);'},
+              el('span',{class:'origin-badge ai-drafted',style:'margin-right:8px;'}, h.type),
+              `"${h.name}" — link first mention to its page`
+            ));
+          });
+        }
+      }}, 'Analyze for internal links')
+    ));
+    item.appendChild(resultsBox);
+
+    const msg = el('span',{class:'save-msg'},'');
+    item.appendChild(el('div',{class:'btn-row'},
+      el('button',{class:'btn primary', onclick: async ()=>{ await saveDoc('blogPosts', b.id, b); msg.textContent='Saved'; renderTabs(); setTimeout(()=>msg.textContent='',2000); }}, 'Save'),
+      el('button',{class:'btn danger', onclick: async ()=>{ await removeDoc('blogPosts', b.id); state.blog.splice(i,1); render(); }}, 'Delete'),
+      msg
+    ));
+    renderVerifyBar(item, b, 'blogPosts', b.id, ()=>b);
+    card.appendChild(item);
+  });
+  card.appendChild(el('div',{class:'add-row'}, el('button',{class:'btn', onclick: async ()=>{
+    const id = 'b'+Date.now();
+    const b = {id, title:'', treatmentId:'', bodyText:'', metaDescription:'', origin:'human', verified:false};
+    state.blog.push(b);
+    await saveDoc('blogPosts', id, b);
+    render();
+  }}, '+ Add blog post')));
+  main.appendChild(card);
+}
+
+function render(){
+  renderTabs();
+  renderProgress();
+  const main = document.getElementById('main');
+  main.innerHTML = '';
+  if(!dataLoaded){
+    main.appendChild(el('div', {class:'callout'}, el('p',{class:'ctitle'},'Loading…'), el('p',{}, 'Pulling the latest data from Firestore. If this doesn\'t clear in a few seconds, check your connection.')));
+  }
+  if(activeTab==='ready') renderReady(main);
+  else if(activeTab==='clinic') renderClinic(main);
+  else if(activeTab==='doctor') renderDoctor(main);
+  else if(activeTab==='treatments') renderTreatments(main);
+  else if(activeTab==='locations') renderLocations(main);
+  else if(activeTab==='gallery') renderGallery(main);
+  else if(activeTab==='faqs') renderFaqs(main);
+  else if(activeTab==='testimonials') renderTestimonials(main);
+  else if(activeTab==='blog') renderBlog(main);
+  else if(activeTab==='audit') renderAudit(main);
+}
+
+// ============================================================
+// TREATMENT AUDIT TAB
+// ============================================================
+const AUDIT_CATEGORIES = [
+  {name:'Pigmentation & marks', items:[
+    {id:'pigmentation-treatment', name:'Pigmentation treatment (general)'},
+    {id:'melasma', name:'Melasma'},
+    {id:'post-acne-marks', name:'Post-acne marks / scars'},
+    {id:'sun-damage', name:'Sun damage / photoaging'},
+    {id:'skin-brightening', name:'Skin brightening'},
+  ]},
+  {name:'Acne & resurfacing', items:[
+    {id:'acne-treatment', name:'Acne treatment (general)'},
+    {id:'chemical-peel', name:'Chemical peel'},
+    {id:'hydrafacial', name:'HydraFacial'},
+    {id:'skin-resurfacing', name:'Skin resurfacing / repair'},
+    {id:'microneedling', name:'Microneedling'},
+  ]},
+  {name:'Skin lesions & dermatosurgery', items:[
+    {id:'mole-removal', name:'Mole removal'},
+    {id:'wart-removal', name:'Wart removal'},
+    {id:'cyst-removal', name:'Cyst removal'},
+    {id:'skin-tag-removal', name:'Skin tag removal'},
+    {id:'birthmark-removal', name:'Birthmark removal'},
+    {id:'tattoo-removal', name:'Tattoo removal'},
+  ]},
+  {name:'Medical / chronic skin', items:[
+    {id:'eczema', name:'Eczema'},
+    {id:'psoriasis', name:'Psoriasis'},
+    {id:'skin-infections', name:'Skin infections (general)'},
+  ]},
+  {name:'Hair', items:[
+    {id:'hair-fall-treatment', name:'Hair fall treatment (general)'},
+    {id:'prp-hair', name:'PRP hair treatment'},
+    {id:'gfc-hair', name:'GFC hair treatment'},
+    {id:'qr678-hair', name:'QR678 hair treatment'},
+    {id:'hair-transplant', name:'Hair transplant'},
+    {id:'laser-hair-removal', name:'Laser hair removal / reduction'},
+  ]},
+  {name:'Anti-aging & injectables', items:[
+    {id:'botox', name:'Botox / anti-aging'},
+    {id:'dermal-fillers', name:'Dermal fillers'},
+    {id:'hifu', name:'HIFU (skin tightening)'},
+    {id:'thermage', name:'Thermage'},
+    {id:'collagen-stim', name:'Collagen stimulation (non-surgical tightening)'},
+    {id:'laser-toning', name:'Laser toning'},
+    {id:'exosome-therapy', name:'Exosome therapy'},
+    {id:'revlite-laser', name:'Revlite laser (pigmentation)'},
+    {id:'4d-clearlift', name:'4D Clearlift'},
+  ]},
+  {name:'Body & wellness', items:[
+    {id:'coolsculpting', name:'CoolSculpting (fat reduction)'},
+    {id:'iv-wellness', name:'IV wellness therapy'},
+    {id:'medical-weight-loss', name:'Medical weight loss'},
+  ]},
+];
+
+function renderAudit(main){
+  main.appendChild(el('h2', {}, 'Treatment audit'));
+  main.appendChild(el('p', {class:'section-dek'}, 'Every condition/treatment seen across the competitors researched in the SEO Report. Mark Yes for anything Pigment\'s doctors already treat, even if it isn\'t on the website yet, and note the machine/device used — that becomes the selling-point detail when the page copy gets written. This is a triage list, not public content: confirmed “Yes” items become real records on the Treatments tab next.'));
+
+  let yes=0, no=0, blank=0;
+  AUDIT_CATEGORIES.forEach(c=>c.items.forEach(it=>{
+    const s = state.audit[it.id]||{};
+    if(s.offered==='yes') yes++; else if(s.offered==='no') no++; else blank++;
+  }));
+  const strip = el('div', {class:'summary-strip'});
+  strip.appendChild(el('div', {class:'summary-tile'}, el('div',{class:'n',style:'color:var(--good)'}, String(yes)), el('div',{class:'l'}, 'Offered — Yes')));
+  strip.appendChild(el('div', {class:'summary-tile'}, el('div',{class:'n',style:'color:var(--ink-3)'}, String(no)), el('div',{class:'l'}, 'Not offered — No')));
+  strip.appendChild(el('div', {class:'summary-tile'}, el('div',{class:'n',style:'color:var(--warn)'}, String(blank)), el('div',{class:'l'}, 'Still unanswered')));
+  main.appendChild(strip);
+
+  AUDIT_CATEGORIES.forEach(cat=>{
+    main.appendChild(el('h3', {style:'font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin:24px 0 10px;'}, cat.name));
+    const card = el('div', {class:'card'});
+    cat.items.forEach(it=>{
+      const s = state.audit[it.id] || (state.audit[it.id] = {offered:null, machine:''});
+      const row = el('div', {style:'display:grid;grid-template-columns:1fr auto 260px;gap:14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);'});
+      row.appendChild(el('div', {style:'font-size:14px;font-weight:500;'}, it.name));
+
+      const toggle = el('div', {style:'display:flex;gap:6px;'});
+      const mkBtn = (label, val, activeColor)=> el('button', {
+        style:'font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:16px;cursor:pointer;border:1px solid var(--border);background:'+(s.offered===val?activeColor+'22':'var(--surface-2)')+';color:'+(s.offered===val?activeColor:'var(--ink-2)')+';border-color:'+(s.offered===val?activeColor:'var(--border)')+';',
+        onclick: async ()=>{ s.offered = s.offered===val?null:val; await saveDoc('auditItems', it.id, s); render(); }
+      }, label);
+      toggle.appendChild(mkBtn('Yes','yes','var(--good)'));
+      toggle.appendChild(mkBtn('No','no','var(--ink-3)'));
+      row.appendChild(toggle);
+
+      const machine = el('input',{type:'text', placeholder:'Machine / device used (e.g. Candela GentleMax Pro)'});
+      machine.style.cssText = 'width:100%;font-family:var(--font-body);font-size:13px;color:var(--ink);background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;';
+      machine.value = s.machine || '';
+      machine.addEventListener('input', ()=>{ s.machine = machine.value; });
+      machine.addEventListener('blur', async ()=>{ await saveDoc('auditItems', it.id, s); });
+      row.appendChild(machine);
+
+      card.appendChild(row);
+    });
+    main.appendChild(card);
+  });
+}
+
+function recordStatus(record){
+  if(!record) return 'empty';
+  if(record.verified) return 'verified';
+  const hasContent = Object.keys(record).some(k=>!['origin','verified','verifiedAt','name','id'].includes(k) && fieldFilled(record[k]));
+  return hasContent ? 'draft' : 'empty';
+}
+
+// ============================================================
+// READY TO PUBLISH TAB
+// ============================================================
+function renderReady(main){
+  main.appendChild(el('h2', {}, 'Ready to publish'));
+  main.appendChild(el('p', {class:'section-dek'}, 'Every record in this Data Room, at a glance. Green means a human clicked Verify and it can go on pigmentclinics.in as-is. Amber means content exists — scraped or AI-drafted — but hasn\'t been checked yet. Grey means it\'s still empty. Click any tab above to open and verify.'));
+
+  const allRecords = [
+    ['Clinic information', state.org],
+    ...DOCTORS.map(d=>[d.name, state.doctors[d.id]]),
+    ...TREATMENTS.map(t=>[t.name, state.treatments[t.id]]),
+    ...LOCATIONS.map(l=>[l.name, state.locations[l.id]]),
+  ];
+  const counts = {verified:0, draft:0, empty:0};
+  allRecords.forEach(([,r])=>{ counts[recordStatus(r)]++; });
+  state.faqs.forEach(f=>{ counts[recordStatus(f)]++; });
+  state.testimonials.forEach(t=>{ counts[t.verified?'verified':(fieldFilled(t.quote)?'draft':'empty')]++; });
+  state.gallery.forEach(g=>{ counts[g.verified?'verified':(g.beforeUrl&&g.afterUrl?'draft':'empty')]++; });
+  state.blog.forEach(b=>{ counts[recordStatus(b)]++; });
+
+  const strip = el('div', {class:'summary-strip'});
+  strip.appendChild(el('div', {class:'summary-tile'}, el('div',{class:'n',style:'color:var(--good)'}, String(counts.verified)), el('div',{class:'l'}, 'Verified — ready')));
+  strip.appendChild(el('div', {class:'summary-tile'}, el('div',{class:'n',style:'color:var(--warn)'}, String(counts.draft)), el('div',{class:'l'}, 'Drafted — needs a check')));
+  strip.appendChild(el('div', {class:'summary-tile'}, el('div',{class:'n',style:'color:var(--ink-3)'}, String(counts.empty)), el('div',{class:'l'}, 'Still empty')));
+  main.appendChild(strip);
+
+  const card = el('div', {class:'card'});
+  function group(title, items){
+    card.appendChild(el('div', {class:'ready-group'}, title));
+    const list = el('div', {class:'ready-list'});
+    items.forEach(([name, record])=>{
+      const status = recordStatus(record);
+      list.appendChild(el('div', {class:'ready-row'},
+        el('span', {class:'rname'}, name),
+        el('span', {class:'origin-badge '+ (record && record.origin ? record.origin : 'ai-drafted')}, record ? originBadge(record.origin||'ai-drafted').label : 'Not started'),
+        el('span', {class:'ready-status '+status}, status==='verified'?'Verified':status==='draft'?'Draft':'Empty')
+      ));
+    });
+    card.appendChild(list);
+  }
+  group('Clinic', [['Clinic information', state.org]]);
+  group('Doctors', DOCTORS.map(d=>[d.name, state.doctors[d.id]]));
+  group('Treatments', TREATMENTS.map(t=>[t.name, state.treatments[t.id]]));
+  group('Locations', LOCATIONS.map(l=>[l.name, state.locations[l.id]]));
+  group('FAQs', state.faqs.map(f=>[(f.question || '(untitled question)') + ' — ' + tagLabel(f.tag), f]));
+  group('Testimonials', state.testimonials.map(t=>[t.patientName || '(unnamed)', {...t, verified: t.verified && t.consentConfirmed}]));
+  group('Before/After', state.gallery.map(g=>{
+    const tName = (TREATMENTS.find(t=>t.id===g.treatmentId)||{}).name || '(no treatment chosen)';
+    return [tName, {...g, verified: g.verified && g.consentConfirmed}];
+  }));
+  group('Blog', state.blog.map(b=>[b.title || '(untitled post)', b]));
+  main.appendChild(card);
+}
+
+// Fills only the fields that are still blank, in a record that hasn't been
+// hand-edited (origin !== 'human'). Never touches a field that already has
+// content, and never touches anything a person has taken ownership of by
+// editing it. Safe to run on every load — the more SEED grows over time
+// (e.g. the Botox draft, the expanded FAQ set), the more it can still help
+// a record that was seeded before that content existed.
+async function mergeSeed(collectionName, id, existing, seed, extra){
+  existing = existing || {};
+  if(existing.origin === 'human'){ return existing; }
+  const merged = {...existing};
+  let changed = false;
+  for(const k in seed){
+    if(k==='origin') continue;
+    if(!fieldFilled(existing[k]) && fieldFilled(seed[k])){ merged[k] = seed[k]; changed = true; }
+  }
+  if(!existing.origin && seed.origin){ merged.origin = seed.origin; changed = true; }
+  if(merged.verified === undefined){ merged.verified = false; }
+  if(extra){ Object.assign(merged, extra); }
+  if(changed || !existing.origin || Object.keys(existing).length===0){
+    await saveDoc(collectionName, id, merged);
+  }
+  return merged;
+}
+
+// ============================================================
+// LIVE MULTI-EDITOR SYNC
+// onSnapshot listeners so a second editor's changes show up here without
+// a reload. To avoid yanking the cursor out from under someone actively
+// typing, a remote update is deferred (safeRender) until no input/textarea/
+// select is focused. Each collection's own local writes are skipped here
+// (snapshot.metadata.hasPendingWrites) since local `state` already reflects
+// them — this only reacts to changes confirmed from the server, i.e. from
+// someone else, or from your own write's own server ack.
+// ============================================================
+function isTypingInField(){
+  const a = document.activeElement;
+  return !!(a && ['INPUT','TEXTAREA','SELECT'].includes(a.tagName));
+}
+let pendingSafeRender = false;
+function safeRender(){
+  if(isTypingInField()){ pendingSafeRender = true; return; }
+  render();
+}
+document.addEventListener('focusout', ()=>{
+  if(!pendingSafeRender) return;
+  setTimeout(()=>{
+    if(pendingSafeRender && !isTypingInField()){ pendingSafeRender = false; render(); }
+  }, 60);
+});
+
+function attachLiveListeners(){
+  onSnapshot(docRef('orgInfo','main'), (snap)=>{
+    if(snap.metadata.hasPendingWrites) return;
+    if(snap.exists()){ state.org = snap.data(); safeRender(); }
+  });
+
+  DOCTORS.forEach(doc=>{
+    onSnapshot(docRef('doctors', doc.id), (snap)=>{
+      if(snap.metadata.hasPendingWrites) return;
+      if(snap.exists()){ state.doctors[doc.id] = snap.data(); safeRender(); }
+    });
+  });
+
+  LOCATIONS.forEach(l=>{
+    onSnapshot(docRef('locations', l.id), (snap)=>{
+      if(snap.metadata.hasPendingWrites) return;
+      if(snap.exists()){ state.locations[l.id] = snap.data(); safeRender(); }
+    });
+  });
+
+  onSnapshot(collection(firestore,'treatments'), (qs)=>{
+    if(qs.metadata.hasPendingWrites) return;
+    qs.docChanges().forEach(change=>{
+      const id = change.doc.id;
+      if(change.type==='removed'){
+        delete state.treatments[id];
+        const idx = TREATMENTS.findIndex(t=>t.id===id);
+        if(idx>-1) TREATMENTS.splice(idx,1);
+      } else {
+        const data = change.doc.data();
+        state.treatments[id] = data;
+        if(!TREATMENTS.find(t=>t.id===id)) TREATMENTS.push({id, name:data.name||id});
+      }
+    });
+    safeRender();
+  });
+
+  onSnapshot(collection(firestore,'faqs'), (qs)=>{
+    if(qs.metadata.hasPendingWrites) return;
+    state.faqs = qs.docs.map(d=>({id:d.id, ...d.data()}));
+    safeRender();
+  });
+
+  onSnapshot(collection(firestore,'testimonials'), (qs)=>{
+    if(qs.metadata.hasPendingWrites) return;
+    state.testimonials = qs.docs.map(d=>({id:d.id, ...d.data()}));
+    safeRender();
+  });
+
+  onSnapshot(collection(firestore,'gallery'), (qs)=>{
+    if(qs.metadata.hasPendingWrites) return;
+    state.gallery = qs.docs.map(d=>({id:d.id, ...d.data()}));
+    safeRender();
+  });
+
+  onSnapshot(collection(firestore,'blogPosts'), (qs)=>{
+    if(qs.metadata.hasPendingWrites) return;
+    state.blog = qs.docs.map(d=>({id:d.id, ...d.data()}));
+    safeRender();
+  });
+
+  onSnapshot(collection(firestore,'auditItems'), (qs)=>{
+    if(qs.metadata.hasPendingWrites) return;
+    qs.docs.forEach(d=>{ state.audit[d.id] = d.data(); });
+    safeRender();
+  });
+}
+
+// ============================================================
+// INIT — one-time load + seed-merge, then hand off to live listeners
+// ============================================================
+async function init(){
+  try{
+    const orgSnap = await getDoc(docRef('orgInfo','main'));
+    state.org = await mergeSeed('orgInfo','main', orgSnap.exists() ? orgSnap.data() : null, SEED.org);
+
+    for(const doc of DOCTORS){
+      const snap = await getDoc(docRef('doctors', doc.id));
+      state.doctors[doc.id] = await mergeSeed('doctors', doc.id, snap.exists() ? snap.data() : null, SEED.doctors[doc.id] || {}, {name:doc.name});
+    }
+
+    const treatmentsSnap = await getDocs(collection(firestore,'treatments'));
+    const treatmentDocs = {};
+    treatmentsSnap.forEach(d=>{ treatmentDocs[d.id] = d.data(); });
+    Object.keys(treatmentDocs).forEach(id=>{
+      if(!TREATMENTS.find(t=>t.id===id)) TREATMENTS.push({id, name: treatmentDocs[id].name || id});
+    });
+    for(const t of TREATMENTS){
+      state.treatments[t.id] = await mergeSeed('treatments', t.id, treatmentDocs[t.id] || null, SEED.treatments[t.id] || {}, {name:t.name});
+    }
+
+    for(const l of LOCATIONS){
+      const snap = await getDoc(docRef('locations', l.id));
+      state.locations[l.id] = await mergeSeed('locations', l.id, snap.exists() ? snap.data() : null, SEED.locations[l.id] || {}, {name:l.name});
+    }
+
+    const faqsSnap = await getDocs(collection(firestore,'faqs'));
+    state.faqs = faqsSnap.docs.map(d=>({id:d.id, ...d.data()}));
+    const existingQuestions = new Set(state.faqs.map(f=>(f.question||'').trim().toLowerCase()));
+    for(const f of SEED.faqs){
+      if(!existingQuestions.has(f.question.trim().toLowerCase())){
+        const id = 'f'+Math.random().toString(36).slice(2,10);
+        const docData = {id, question:f.question, answer:f.answer, origin:f.origin||'ai-drafted', verified:false};
+        state.faqs.push(docData);
+        await saveDoc('faqs', id, docData);
+      }
+    }
+
+    const testSnap = await getDocs(collection(firestore,'testimonials'));
+    state.testimonials = testSnap.docs.map(d=>({id:d.id, ...d.data()}));
+
+    const gallerySnap = await getDocs(collection(firestore,'gallery'));
+    state.gallery = gallerySnap.docs.map(d=>({id:d.id, ...d.data()}));
+
+    const blogSnap = await getDocs(collection(firestore,'blogPosts'));
+    state.blog = blogSnap.docs.map(d=>({id:d.id, ...d.data()}));
+
+    const auditSnap = await getDocs(collection(firestore,'auditItems'));
+    auditSnap.forEach(d=>{ state.audit[d.id] = d.data(); });
+
+    dataLoaded = true;
+    render();
+    attachLiveListeners();
+  } catch(e){
+    console.error('init failed', e);
+    setSyncStatus('error', 'could not load data — ' + e.message);
+    dataLoaded = true;
+    render();
+  }
+}
+
+function boot(){
+  render();
+  init();
+}
+</script>
+</body>
+</html>
