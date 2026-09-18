@@ -136,6 +136,12 @@
   .empty-state{ text-align:center; padding:40px 20px; color:var(--ink-3); font-size:13.5px; }
 
   .verify-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:16px; padding-top:16px; border-top:1px dashed var(--border); flex-wrap:wrap; }
+  .verify-row-inner{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .published-badge{ font-family:var(--font-mono); font-size:11.5px; font-weight:700; color:var(--accent); display:flex; align-items:center; gap:6px; }
+  .stale-badge{ font-family:var(--font-mono); font-size:11.5px; font-weight:700; color:var(--warn); display:flex; align-items:center; gap:6px; }
+  .btn.publish{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:700; }
+  .btn.publish:hover{ opacity:.88; }
+  .btn.unpublish{ background:transparent; border-color:var(--border); color:var(--ink-3); font-size:11.5px; padding:6px 12px; }
   .origin-badge{ font-family:var(--font-mono); font-size:10px; padding:4px 10px; border-radius:100px; font-weight:600; white-space:nowrap; }
   .origin-badge.scraped{ background:var(--accent-soft); color:var(--accent); }
   .origin-badge.ai-drafted{ background:var(--plum-soft); color:var(--plum); }
@@ -676,18 +682,46 @@ function uploadField(container, currentUrl, onUploaded, folder){
 // verifying un-verifies it automatically — every change needs a fresh check.
 function renderVerifyBar(card, record, collectionName, id, buildPayload){
   const bar = el('div', {class:'verify-row'});
+  const left = el('div', {class:'verify-row-inner'});
   const badge = originBadge(record.origin || 'ai-drafted');
-  bar.appendChild(el('span', {class:'origin-badge '+badge.cls}, badge.label));
+  left.appendChild(el('span', {class:'origin-badge '+badge.cls}, badge.label));
+
   if(record.verified){
-    bar.appendChild(el('span', {class:'verified-badge'}, '✓ Verified — ready for the website'));
+    left.appendChild(el('span', {class:'verified-badge'}, '✓ Verified — ready for the website'));
   } else {
-    bar.appendChild(el('button', {class:'btn verify', onclick: async ()=>{
+    left.appendChild(el('button', {class:'btn verify', onclick: async ()=>{
       record.verified = true;
       record.verifiedAt = new Date().toISOString();
       await saveDoc(collectionName, id, buildPayload());
       render();
     }}, 'Verify — ready for website'));
   }
+
+  // Published is deliberately a separate yes/no from Verified — verifying
+  // means "this is accurate," publishing means "this is live on the actual
+  // site." Editing a field resets verified to false elsewhere in this file;
+  // if that happens after something was published, it's shown as stale
+  // rather than silently still claiming to be live, since the two can now
+  // disagree with each other.
+  if(record.published && record.verified){
+    left.appendChild(el('span', {class:'published-badge'}, '● Published — live on site'));
+    left.appendChild(el('button', {class:'btn unpublish', onclick: async ()=>{
+      record.published = false;
+      await saveDoc(collectionName, id, buildPayload());
+      render();
+    }}, 'Unpublish'));
+  } else if(record.published && !record.verified){
+    left.appendChild(el('span', {class:'stale-badge'}, '⚠ Published, but edited since — verify again to update the live version'));
+  } else if(record.verified){
+    left.appendChild(el('button', {class:'btn publish', onclick: async ()=>{
+      record.published = true;
+      record.publishedAt = new Date().toISOString();
+      await saveDoc(collectionName, id, buildPayload());
+      render();
+    }}, 'Publish — make live'));
+  }
+
+  bar.appendChild(left);
   card.appendChild(bar);
 }
 
@@ -854,17 +888,25 @@ function renderTreatments(main){
   const nameInput = el('input',{type:'text', placeholder:'e.g. Microneedling'});
   nameInput.style.cssText = 'flex:1;font-family:var(--font-body);font-size:14px;color:var(--ink);background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;';
   const addMsg = el('span',{class:'save-msg'},'');
+  const newCatSkin = el('input',{type:'checkbox'}); newCatSkin.style.width='auto';
+  const newCatHair = el('input',{type:'checkbox'}); newCatHair.style.width='auto';
+  const newCatWrap = el('label',{style:'display:flex;align-items:center;gap:16px;font-family:var(--font-body);text-transform:none;font-size:13px;color:var(--ink-2);white-space:nowrap;'},
+    el('span',{style:'display:flex;align-items:center;gap:6px;'}, newCatSkin, 'Skin'),
+    el('span',{style:'display:flex;align-items:center;gap:6px;'}, newCatHair, 'Hair')
+  );
   addRow.appendChild(nameInput);
+  addRow.appendChild(newCatWrap);
   addRow.appendChild(el('button',{class:'btn primary', onclick: async ()=>{
     const name = nameInput.value.trim();
     if(!name){ addMsg.textContent='Enter a name first'; setTimeout(()=>addMsg.textContent='',2000); return; }
     const id = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 't'+Date.now();
     if(TREATMENTS.find(t=>t.id===id)){ addMsg.textContent='That treatment already exists'; setTimeout(()=>addMsg.textContent='',2000); return; }
     TREATMENTS.push({id, name});
-    const d = {name, origin:'human', verified:false};
+    const category = [newCatSkin.checked && 'skin', newCatHair.checked && 'hair'].filter(Boolean);
+    const d = {name, category, origin:'human', verified:false};
     state.treatments[id] = d;
     await saveDoc('treatments', id, d);
-    nameInput.value='';
+    nameInput.value=''; newCatSkin.checked=false; newCatHair.checked=false;
     render();
   }}, '+ Add treatment'));
   addRow.appendChild(addMsg);
@@ -876,6 +918,21 @@ function renderTreatments(main){
     const card = el('div', {class:'card'});
     const filled = ['sessionCount','description'].filter(k=>fieldFilled(d[k])).length;
     card.appendChild(el('div', {class:'card-head'}, el('h3',{}, t.name), el('span',{class:'status-pill '+sectionStatus(filled,2)}, filled+'/2 filled')));
+
+    const cat = Array.isArray(d.category) ? d.category : [];
+    const catSkin = el('input',{type:'checkbox'}); catSkin.style.width='auto'; catSkin.checked = cat.includes('skin');
+    const catHair = el('input',{type:'checkbox'}); catHair.style.width='auto'; catHair.checked = cat.includes('hair');
+    const syncCategory = ()=>{
+      d.category = [catSkin.checked && 'skin', catHair.checked && 'hair'].filter(Boolean);
+      d.verified = false;
+    };
+    catSkin.addEventListener('change', syncCategory);
+    catHair.addEventListener('change', syncCategory);
+    card.appendChild(el('label',{},'Category (a treatment can be both — e.g. Laser Hair Removal is Skin and Hair)'));
+    card.appendChild(el('div',{style:'display:flex;gap:20px;margin:-4px 0 18px;'},
+      el('label',{style:'display:flex;align-items:center;gap:6px;font-family:var(--font-body);text-transform:none;font-size:13px;color:var(--ink-2);'}, catSkin, 'Skin'),
+      el('label',{style:'display:flex;align-items:center;gap:6px;font-family:var(--font-body);text-transform:none;font-size:13px;color:var(--ink-2);'}, catHair, 'Hair')
+    ));
 
     const row = el('div', {class:'field-row'});
     const c1 = el('div'); c1.appendChild(el('label',{},'Pricing note (optional — never a number; e.g. "consultation-based")')); const i1=el('input',{type:'text'}); i1.value=d.costRange||''; i1.addEventListener('input',()=>{d.costRange=i1.value; d.verified=false;}); c1.appendChild(i1);
