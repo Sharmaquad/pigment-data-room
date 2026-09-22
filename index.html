@@ -434,7 +434,7 @@ const LOCATIONS = [
   {id:'sarjapur-road', name:'Sarjapur Road'},
   {id:'bellandur', name:'Bellandur'},
 ];
-const DOCTORS = [
+let DOCTORS = [
   {id:'dr-namitha-chathra', name:'Dr. Namitha Chathra'},
   {id:'dr-abhey-shamsunder', name:'Dr. Abhey Shamsunder'},
 ];
@@ -632,6 +632,7 @@ let state = {
   faqs: [], testimonials: [],
   gallery: [], blog: [],
   audit: {}, consentReview: [],
+  googleReviews: [],
 };
 let activeTab = 'ready';
 let dataLoaded = false;
@@ -646,6 +647,7 @@ const TABS = [
   {id:'consentReview', label:'Consent Review'},
   {id:'faqs', label:'FAQs'},
   {id:'testimonials', label:'Testimonials'},
+  {id:'reviews', label:'Google Reviews'},
   {id:'blog', label:'Blog'},
   {id:'audit', label:'Treatment Audit'},
   {id:'architecture', label:'Architecture'},
@@ -922,6 +924,29 @@ function renderClinic(main){
 function renderDoctor(main){
   main.appendChild(el('h2', {}, 'Doctors'));
   main.appendChild(el('p', {class:'section-dek'}, 'Feeds /doctor/&lt;name&gt; pages — the single highest-priority pages from the SEO Report. Real bios already exist on pigmentclinics.in/about-us/, just as plain paragraph text with no schema markup and no per-doctor page — that\'s the gap to close, not a from-scratch write.'));
+
+  const addCard = el('div', {class:'card', style:'margin-bottom:20px;'});
+  addCard.appendChild(el('label',{},'Add a new doctor (creates a fresh doctor record, selectable everywhere a doctor is tagged: Blog authorship, FAQs, Treatments)'));
+  const addRow = el('div', {class:'btn-row'});
+  const nameInput = el('input',{type:'text', placeholder:'e.g. Dr. Firstname Lastname'});
+  nameInput.style.cssText = 'flex:1;font-family:var(--font-body);font-size:14px;color:var(--ink);background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;';
+  const addMsg = el('span',{class:'save-msg'},'');
+  addRow.appendChild(nameInput);
+  addRow.appendChild(el('button',{class:'btn primary', onclick: async ()=>{
+    const name = nameInput.value.trim();
+    if(!name){ addMsg.textContent='Enter a name first'; setTimeout(()=>addMsg.textContent='',2000); return; }
+    const id = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'doc'+Date.now();
+    if(DOCTORS.find(d=>d.id===id)){ addMsg.textContent='That doctor already exists'; setTimeout(()=>addMsg.textContent='',2000); return; }
+    DOCTORS.push({id, name});
+    const d = {name, origin:'human', verified:false};
+    state.doctors[id] = d;
+    await saveDoc('doctors', id, d);
+    nameInput.value='';
+    render();
+  }}, '+ Add doctor'));
+  addRow.appendChild(addMsg);
+  addCard.appendChild(addRow);
+  main.appendChild(addCard);
 
   DOCTORS.forEach(doc=>{
     const d = state.doctors[doc.id] || {};
@@ -1224,6 +1249,68 @@ function renderTestimonials(main){
 }
 
 // ============================================================
+// GOOGLE REVIEWS TAB
+// ============================================================
+// Real, verbatim reviews pulled from Pigment's actual Google Business
+// Profile — not the Places API, and not written/paraphrased by us. Tagged
+// by reviewer name + which treatment the review is actually about, so the
+// live site can show a "Customer Speak" section with an All tab plus one
+// tab per treatment, each backed by real review text.
+function renderGoogleReviews(main){
+  main.appendChild(el('h2', {}, 'Google Reviews'));
+  main.appendChild(el('p', {class:'section-dek'}, 'Real reviews copied verbatim from Pigment\'s Google Business Profile, tagged by reviewer name and the treatment each review is actually about. This feeds a "Customer Speak" section on the site — an All tab plus one tab per treatment. Every entry needs its source link confirmed before it can be verified; nothing paraphrased or invented belongs here.'));
+
+  const card = el('div', {class:'card'});
+  if(state.googleReviews.length===0){
+    card.appendChild(el('div',{class:'empty-state'}, 'No reviews yet — add the first one below.'));
+  }
+  state.googleReviews.forEach((r,i)=>{
+    const item = el('div', {class:'list-item'});
+    const row = el('div', {class:'field-row'});
+    const c1=el('div'); c1.appendChild(el('label',{},'Reviewer name (as shown on Google)')); const n=el('input',{type:'text'}); n.value=r.reviewerName||''; n.addEventListener('input',()=>{r.reviewerName=n.value; r.verified=false;}); c1.appendChild(n);
+    const c2=el('div'); c2.appendChild(el('label',{},'Rating (1–5)')); const rt=el('input',{type:'text'}); rt.value=r.rating||''; rt.addEventListener('input',()=>{r.rating=rt.value; r.verified=false;}); c2.appendChild(rt);
+    row.appendChild(c1); row.appendChild(c2);
+    item.appendChild(row);
+
+    item.appendChild(el('label',{},'Which treatment is this review about'));
+    item.appendChild(buildTagSelect(r.treatmentTag||'', (v)=>{ r.treatmentTag=v; r.verified=false; }));
+
+    item.appendChild(el('label',{},'Review text (verbatim — copy exactly, do not paraphrase)'));
+    const q = el('textarea',{}); q.value=r.reviewText||''; q.addEventListener('input',()=>{r.reviewText=q.value; r.verified=false;});
+    item.appendChild(q);
+
+    item.appendChild(el('label',{},'Source — link to this review on Google Maps/Search (how we confirm it\'s real, not invented)'));
+    const src = el('input',{type:'text'}); src.value=r.sourceUrl||''; src.addEventListener('input',()=>{r.sourceUrl=src.value; r.verified=false;});
+    item.appendChild(src);
+
+    const confirmLabel = el('label',{style:'display:flex;align-items:center;gap:8px;font-family:var(--font-body);text-transform:none;font-size:13px;color:var(--ink-2);margin-top:12px;'});
+    const cb = el('input',{type:'checkbox'}); cb.checked = !!r.sourceConfirmed; cb.style.width='auto'; cb.addEventListener('change',()=>{ r.sourceConfirmed=cb.checked; if(!cb.checked) r.verified=false; render(); });
+    confirmLabel.appendChild(cb);
+    confirmLabel.appendChild(document.createTextNode('Confirmed this is a real, verbatim review from Google — not written or paraphrased by us'));
+    item.appendChild(confirmLabel);
+
+    item.appendChild(el('div',{class:'btn-row'},
+      el('button',{class:'btn primary', onclick: async ()=>{ await saveDoc('googleReviews', r.id, r); renderTabs(); renderProgress(); }}, 'Save'),
+      el('button',{class:'btn danger', onclick: async ()=>{ await removeDoc('googleReviews', r.id); state.googleReviews.splice(i,1); render(); }}, 'Delete')
+    ));
+    if(!r.sourceConfirmed){
+      item.appendChild(el('p', {style:'font-size:12px;color:var(--crit);margin-top:10px;'}, 'Confirm the source above before verifying — nothing unconfirmed should go live.'));
+    } else {
+      renderVerifyBar(item, r, 'googleReviews', r.id, ()=>r);
+    }
+    card.appendChild(item);
+  });
+  card.appendChild(el('div',{class:'add-row'}, el('button',{class:'btn', onclick: async ()=>{
+    const id = 'gr'+Date.now();
+    const r = {id, reviewerName:'', rating:'', treatmentTag:'', reviewText:'', sourceUrl:'', sourceConfirmed:false, origin:'human', verified:false};
+    state.googleReviews.push(r);
+    await saveDoc('googleReviews', id, r);
+    render();
+  }}, '+ Add review')));
+  main.appendChild(card);
+}
+
+// ============================================================
 // BEFORE/AFTER GALLERY TAB
 // ============================================================
 function renderGallery(main){
@@ -1478,6 +1565,21 @@ function renderBlog(main){
     sel.addEventListener('change',()=>{ b.treatmentId=sel.value; b.verified=false; });
     item.appendChild(sel);
 
+    item.appendChild(el('label',{},'Author doctor(s) — none = the clinic\'s own voice; one or more = that doctor\'s / those doctors\' byline'));
+    const doctorIds = Array.isArray(b.doctorIds) ? b.doctorIds : [];
+    const doctorRow = el('div', {style:'display:flex;gap:16px;flex-wrap:wrap;margin:-4px 0 18px;'});
+    DOCTORS.forEach(doc=>{
+      const cb = el('input',{type:'checkbox'}); cb.style.width='auto'; cb.checked = doctorIds.includes(doc.id);
+      cb.addEventListener('change',()=>{
+        const cur = new Set(Array.isArray(b.doctorIds)?b.doctorIds:[]);
+        if(cb.checked) cur.add(doc.id); else cur.delete(doc.id);
+        b.doctorIds = [...cur];
+        b.verified = false;
+      });
+      doctorRow.appendChild(el('label',{style:'display:flex;align-items:center;gap:6px;font-family:var(--font-body);text-transform:none;font-size:13px;color:var(--ink-2);'}, cb, doc.name));
+    });
+    item.appendChild(doctorRow);
+
     item.appendChild(el('label',{},'Body text'));
     const body = el('textarea',{}); body.style.minHeight='160px'; body.value=b.bodyText||''; body.addEventListener('input',()=>{b.bodyText=body.value; b.verified=false;});
     item.appendChild(body);
@@ -1485,6 +1587,10 @@ function renderBlog(main){
     item.appendChild(el('label',{},'Meta description'));
     const meta = el('textarea',{}); meta.style.minHeight='44px'; meta.value=b.metaDescription||''; meta.addEventListener('input',()=>{b.metaDescription=meta.value; b.verified=false;});
     item.appendChild(meta);
+
+    item.appendChild(el('label',{},'Internal links (which treatment/location/FAQ pages and related posts this should link to, and why — one per line)'));
+    const links = el('textarea',{}); links.style.minHeight='70px'; links.value=b.internalLinksText||''; links.addEventListener('input',()=>{b.internalLinksText=links.value; b.verified=false;});
+    item.appendChild(links);
 
     const resultsBox = el('div', {style:'margin-top:14px;'});
     item.appendChild(el('div',{class:'btn-row', style:'margin-top:0;'},
@@ -1544,6 +1650,7 @@ function render(){
   else if(activeTab==='consentReview') renderConsentReview(main);
   else if(activeTab==='faqs') renderFaqs(main);
   else if(activeTab==='testimonials') renderTestimonials(main);
+  else if(activeTab==='reviews') renderGoogleReviews(main);
   else if(activeTab==='blog') renderBlog(main);
   else if(activeTab==='audit') renderAudit(main);
   else if(activeTab==='architecture') renderArchitecture(main);
@@ -1667,61 +1774,85 @@ function recordStatus(record){
 const SITE_ARCHITECTURE_DIAGRAM = `graph TD
   subgraph PAGES["Content pages — what you navigate between"]
     HOME["Homepage"]
+    SVC["Services mega-menu"]
+    subgraph CATS["4 treatment categories — Oliva-parity structure"]
+      HAIR["Hair<br/>12 pages (1 not offered)"]
+      SKIN["Skin<br/>32 pages"]
+      AES["Aesthetics<br/>13 pages"]
+      BODY["Body & Wellness<br/>6 pages"]
+    end
+    UMB["Umbrella / overview pages<br/>e.g. Anti-Ageing, Skin Rejuvenation, Medical Weight Loss"]
+    GRAN["Granular technique pages<br/>e.g. Botox, HydraFacial, GLP-1 Weight Loss"]
     DOC1["Doctor page — Dr. Namitha"]
     DOC2["Doctor page — Dr. Abhey"]
-    TRT["Treatment pages ×9"]
     LOC["Location pages ×4"]
     GAL["Results gallery — by treatment"]
     FAQ["FAQ hub"]
     BLOG["Blog posts"]
+    REV["Customer Speak — Google Reviews<br/>All + one tab per treatment"]
   end
 
   CTA1(["Book Appointment — Zenoti<br/>primary, nav bar, every page"])
   CTA2(["Call Us<br/>secondary, top utility bar"])
   CTA3(["WhatsApp<br/>floating bubble, bottom-right"])
 
+  HOME --> SVC
+  SVC --> HAIR
+  SVC --> SKIN
+  SVC --> AES
+  SVC --> BODY
+  HAIR --> UMB
+  SKIN --> UMB
+  AES --> UMB
+  BODY --> UMB
+  UMB --> GRAN
   HOME --> DOC1
   HOME --> DOC2
-  HOME --> TRT
   HOME --> LOC
   HOME --> GAL
+  HOME --> REV
 
   DOC1 --> GAL
   DOC2 --> GAL
-  DOC1 -.specializes in.-> TRT
-  DOC2 -.specializes in.-> TRT
+  DOC1 -.specializes in.-> GRAN
+  DOC2 -.specializes in.-> GRAN
 
-  TRT --> GAL
-  TRT --> FAQ
-  TRT --> DOC1
-  TRT --> DOC2
-  TRT --> LOC
-  TRT -.related treatment.-> TRT
-  TRT <--> BLOG
+  GRAN --> GAL
+  GRAN --> FAQ
+  GRAN --> DOC1
+  GRAN --> DOC2
+  GRAN --> LOC
+  GRAN -.merged near-duplicate.-> GRAN
+  GRAN <--> BLOG
+  GRAN --> REV
 
-  LOC --> TRT
+  LOC --> GRAN
   LOC --> DOC1
   LOC --> DOC2
 
-  GAL -.filter by treatment.-> TRT
-  FAQ -.treatment-specific.-> TRT
-  BLOG -.first mention, in-text.-> TRT
+  GAL -.filter by treatment.-> GRAN
+  FAQ -.treatment-specific.-> GRAN
+  BLOG -.first mention, in-text.-> GRAN
   BLOG -.first mention, in-text.-> DOC1
   BLOG -.first mention, in-text.-> LOC
+  REV -.filter by treatment.-> GRAN
 
   PAGES -.always present, not a link.- CTA1
   PAGES -.always present, not a link.- CTA2
   PAGES -.always present, not a link.- CTA3`;
 
 const ARCHITECTURE_LINK_TABLE = [
+  ['Services mega-menu → 4 categories', 'Hair / Skin / Aesthetics / Body & Wellness, matching Oliva\'s structure', 'The old site only exposed Hair and Skin — Anti-Aging and Body & Wellness services existed but had nowhere to live in the nav.'],
+  ['Category → umbrella → granular', 'A category (e.g. Skin) links to overview pages (e.g. Skin Rejuvenation), which link down to the specific technique pages beneath them (e.g. HydraFacial, Chemical Peel)', 'Matches how people actually search — some know the general concern, some already know the exact treatment name.'],
   ['Doctor → Gallery', 'Both doctor pages link to the one results gallery', "Results are common, not individually attributed; the doctor page's job is to build trust, then hand off to proof."],
   ['Treatment → Gallery (filtered)', 'Each treatment page embeds its own filtered slice of the gallery', 'Highest-intent placement — someone reading about laser hair removal sees laser hair removal results, not a mixed feed.'],
-  ['Treatment ↔ Treatment', 'Topically related treatments cross-link (PRP Hair Treatment ↔ Hair Fall Treatment; Pigmentation ↔ Chemical Peel; Acne Treatment ↔ Chemical Peel)', 'Keeps focused pages from becoming orphaned islands — pillar-and-cluster, without re-bundling the content itself.'],
+  ['Treatment ↔ Treatment (merge, not link)', 'A few near-duplicate pages were merged rather than cross-linked — Hollywood Facial into Carbon Laser Facial, Revlite into Laser Toning, Inch Loss & Express Weight Loss into Medical Weight Loss', 'Two thin pages competing for the same search term rank worse than one strong page — merging concentrates authority instead of splitting it.'],
   ['Treatment ↔ Blog', 'Every blog post links to the treatment(s) it discusses; every treatment page links back to relevant posts', 'This is what makes the blog calendar actually feed the pillar pages instead of sitting disconnected in /blog/.'],
-  ['Treatment → Doctor', 'Each treatment page names which doctor(s) cover it, based on their listed specializations', 'Answers "who would actually treat me" right where the decision is being made.'],
-  ['Location → Treatment, Location → Doctor', 'All 4 location pages link to the same 9 treatments and both doctors', 'One physical clinic, four local-SEO entry points — the pages differ by neighborhood content, not by what\'s offered.'],
+  ['Treatment → Doctor', 'Each treatment page names which doctor(s) cover it', 'Answers "who would actually treat me" right where the decision is being made.'],
+  ['Location → Treatment, Location → Doctor', 'All 4 location pages link to the full treatment set and both doctors', 'One physical clinic, four local-SEO entry points — the pages differ by neighborhood content, not by what\'s offered.'],
   ['FAQ → Treatment', 'Every treatment-specific FAQ in the hub links back to its treatment page', 'Captures the search, then routes straight to the page that converts.'],
-  ['Sitewide footer', 'Every page links to: both doctors, the treatments hub, all locations, the gallery, and the FAQ hub', 'The simplest, highest-leverage link of all — nothing is ever more than one click from anything else.'],
+  ['Treatment → Customer Speak (filtered)', 'Each treatment page can embed its own filtered slice of real Google reviews', 'Real, verbatim reviews tagged by treatment — social proof placed exactly where someone is deciding.'],
+  ['Sitewide footer', 'Every page links to: both doctors, the services menu, all locations, the gallery, the FAQ hub, and Customer Speak', 'The simplest, highest-leverage link of all — nothing is ever more than one click from anything else.'],
 ];
 
 let mermaidInitialized = false;
@@ -1976,6 +2107,9 @@ async function init(){
 
     const testSnap = await getDocs(collection(firestore,'testimonials'));
     state.testimonials = testSnap.docs.map(d=>({id:d.id, ...d.data()}));
+
+    const reviewsSnap = await getDocs(collection(firestore,'googleReviews'));
+    state.googleReviews = reviewsSnap.docs.map(d=>({id:d.id, ...d.data()}));
 
     const gallerySnap = await getDocs(collection(firestore,'gallery'));
     state.gallery = gallerySnap.docs.map(d=>({id:d.id, ...d.data()}));
