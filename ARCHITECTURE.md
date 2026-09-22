@@ -55,7 +55,7 @@ Known real gap, not a sourcing failure: **zero real 5-star reviews exist for Bod
 
 ## SEO auditing
 
-A repeatable audit checklist exists as a Claude Code skill (`~/.claude/skills/pigment-seo-audit/`, user-level — available in any session via `/pigment-seo-audit`). It covers 9 categories: image SEO, PageSpeed/Core Web Vitals, on-page content, technical SEO/schema, local SEO, keyword strategy, backlinks, analytics, accessibility. Intended to run against the real site once it's live, not the current placeholder state.
+A repeatable audit checklist exists as a Claude Code skill (`~/.claude/skills/pigment-seo-audit/`, user-level — available in any session via `/pigment-seo-audit`). Split into two genuinely different halves, per explicit owner instruction — **Internal SEO** (image SEO, PageSpeed/Core Web Vitals, on-page content, technical SEO/schema, local SEO, analytics, accessibility — fully within the clinic's own control) and **External SEO** (competitor benchmarking against Oliva Clinic and Kosmoderma page-by-page, keyword position tracking across a standing list of 15-20 target terms via Google Search Console when access is granted or a live manual search check as fallback, backlinks). Important distinction baked into the skill: Google Analytics reports traffic, not keyword rank — Search Console is the correct source for position data, don't conflate the two. Intended to run against the real site once it's live, not the current placeholder state.
 
 ## Known open gaps (not yet resolved, don't assume they're fixed)
 
