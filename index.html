@@ -370,9 +370,9 @@ let TREATMENTS = [
   {id:'beard-shaping', name:'Laser Beard Shaping', category:'hair', standaloneUrl:true, auditStatus:'gap'},
   {id:'prp-hair-treatment', name:'PRP Hair Treatment', category:'hair', standaloneUrl:true, auditStatus:'yes'},
   {id:'hair-transplant', name:'Hair Transplant', category:'hair', standaloneUrl:true, auditStatus:'no', note:'Audit says NOT offered — do not write real content or publish until this changes'},
-  {id:'exosome-hair-treatment', name:'Exosome Hair Treatment', category:'hair', standaloneUrl:true, auditStatus:'yes', note:'Maps to Audit item "Exosome therapy"'},
+  {id:'exosome-hair-treatment', name:'Exosome Hair Treatment', category:'hair', standaloneUrl:true, auditStatus:'yes', note:'Delivered via Dutexome — now also covers what QR678 used to (see merge note on that record)'},
   {id:'hair-thread-treatment', name:'Hair Thread Treatment (Scalp PDO Threads)', category:'hair', standaloneUrl:true, auditStatus:'gap'},
-  {id:'qr678-hair-treatment', name:'QR678 Hair Treatment', category:'hair', standaloneUrl:true, auditStatus:'yes'},
+  {id:'qr678-hair-treatment', name:'QR678 Hair Treatment', category:'hair', standaloneUrl:false, bundledInto:'exosome-hair-treatment', auditStatus:'no', note:'Discontinued — clinic replaced QR678 with Dutexome, now covered on the Exosome Hair Treatment page'},
   // ---------------- SKIN ----------------
   {id:'acne-treatment', name:'Acne Treatment (Active Acne / Pimples)', category:'skin', standaloneUrl:true, auditStatus:'yes'},
   {id:'acne-scar-treatment', name:'Acne Scar Treatment', category:'skin', standaloneUrl:true, auditStatus:'yes', note:'Maps to Audit item "Post-acne marks/scars"'},
@@ -381,13 +381,13 @@ let TREATMENTS = [
   {id:'subcision-treatment', name:'Subcision for Acne Scars', category:'skin', standaloneUrl:true, auditStatus:'gap'},
   {id:'chemical-peel', name:'Chemical Peel', category:'skin', standaloneUrl:true, auditStatus:'yes'},
   {id:'skin-lightening-treatment', name:'Skin Lightening & Brightening Treatment', category:'skin', standaloneUrl:true, auditStatus:'yes', note:'Maps to Audit item "Skin brightening"'},
-  {id:'laser-toning', name:'Laser Toning', category:'skin', standaloneUrl:true, auditStatus:'yes'},
+  {id:'laser-toning', name:'Laser Toning', category:'skin', standaloneUrl:true, auditStatus:'yes', note:'Now also covers what the Revlite Laser page used to (see merge note on that record)'},
   {id:'dermafrac-treatment', name:'DermaFrac Treatment', category:'skin', standaloneUrl:true, auditStatus:'gap'},
   {id:'skin-booster-treatment', name:'Skin Booster Treatment (PDRN & Similar)', category:'skin', standaloneUrl:true, auditStatus:'gap'},
   {id:'hydrafacial', name:'HydraFacial', category:'skin', standaloneUrl:true, auditStatus:'yes'},
   {id:'medifacial-treatment', name:'Medifacial', category:'skin', standaloneUrl:true, auditStatus:'gap'},
-  {id:'carbon-laser-facial', name:'Carbon Laser Facial', category:'skin', standaloneUrl:true, auditStatus:'gap'},
-  {id:'hollywood-facial', name:'Hollywood-Style Laser Facial', category:'skin', standaloneUrl:true, auditStatus:'gap', note:'Renamed from Oliva’s "Hollywood Rejuvenation" — generic technique, not their trademark, but confirm clinic actually offers this exact protocol'},
+  {id:'carbon-laser-facial', name:'Carbon Laser Facial', category:'skin', standaloneUrl:true, auditStatus:'yes', note:'Also marketed as "Hollywood Facial" — kept as one page rather than two: same Tribeam device, same protocol, and splitting would just cannibalize one search term against the other instead of concentrating ranking on a single strong page'},
+  {id:'hollywood-facial', name:'Hollywood-Style Laser Facial', category:'skin', standaloneUrl:false, bundledInto:'carbon-laser-facial', auditStatus:'yes', note:'Merged into Carbon Laser Facial — same treatment, kept as the alternate search term within that page rather than a separate URL'},
   {id:'fire-ice-facial', name:'Fire & Ice Facial', category:'skin', standaloneUrl:true, auditStatus:'gap'},
   {id:'foaming-enzyme-facial', name:'Foaming Enzyme Facial', category:'skin', standaloneUrl:true, auditStatus:'gap'},
   {id:'hydrageneo-facial', name:'HydraGeneo Facial', category:'skin', standaloneUrl:true, auditStatus:'gap', note:'HydraGeneo is a real third-party device brand (not Oliva’s own) — confirm the clinic actually has this device before publishing'},
@@ -418,15 +418,15 @@ let TREATMENTS = [
   {id:'micro-botox-treatment', name:'Skin-Boosting Micro-Botox Treatment', category:'aesthetics', standaloneUrl:true, auditStatus:'gap', note:'Renamed — Oliva’s equivalent ("Glowtox") is their trademark, cannot be used'},
   {id:'collagen-stimulation-treatment', name:'Collagen Stimulation Treatment', category:'aesthetics', standaloneUrl:true, auditStatus:'yes'},
   {id:'4d-clearlift-treatment', name:'4D Clearlift', category:'aesthetics', standaloneUrl:true, auditStatus:'yes'},
-  {id:'revlite-laser-treatment', name:'Revlite Laser (Pigmentation & Toning)', category:'aesthetics', standaloneUrl:true, auditStatus:'yes', note:'Some overlap with Laser Toning under Skin — flagged for the owner to decide whether to keep both or merge'},
+  {id:'revlite-laser-treatment', name:'Revlite Laser (Pigmentation & Toning)', category:'aesthetics', standaloneUrl:false, bundledInto:'laser-toning', auditStatus:'no', note:'Clinic uses Tribeam (equivalent) — merged into the Laser Toning page per owner decision'},
   {id:'exosome-therapy', name:'Exosome Therapy (Skin)', category:'aesthetics', standaloneUrl:true, auditStatus:'yes'},
   // ---------------- BODY & WELLNESS ----------------
-  {id:'medical-weight-loss', name:'Medical Weight Loss', category:'body', standaloneUrl:true, auditStatus:'yes'},
+  {id:'medical-weight-loss', name:'Medical Weight Loss', category:'body', standaloneUrl:true, auditStatus:'yes', note:'Consultation-led, delivered by credentialed doctors — also now covers what the Inch Loss and Express Weight Loss pages used to (see merge notes on those records)'},
   {id:'coolsculpting', name:'Body Contouring (CoolSculpting)', category:'body', standaloneUrl:true, auditStatus:'yes'},
   {id:'iv-wellness', name:'IV Wellness Therapy', category:'body', standaloneUrl:true, auditStatus:'yes'},
-  {id:'glp-weight-loss', name:'GLP-1 Medical Weight Loss (Injectable)', category:'body', standaloneUrl:true, auditStatus:'gap', note:'Generic clinical name (GLP-1 receptor agonist), not a brand — confirm the clinic offers this specific injectable program'},
-  {id:'inch-loss-treatment', name:'Inch Loss Treatment', category:'body', standaloneUrl:true, auditStatus:'gap'},
-  {id:'express-weight-loss', name:'Express Weight Loss Program', category:'body', standaloneUrl:true, auditStatus:'gap', note:'Overlaps with Medical Weight Loss & Inch Loss — flagged for the owner to decide whether to keep as a separate page or fold in'},
+  {id:'glp-weight-loss', name:'GLP-1 Medical Weight Loss (Injectable)', category:'body', standaloneUrl:true, auditStatus:'yes', note:'Kept as its own page — genuinely distinct mechanism and currently high, distinct search demand, unlike Inch Loss/Express Weight Loss'},
+  {id:'inch-loss-treatment', name:'Inch Loss Treatment', category:'body', standaloneUrl:false, bundledInto:'medical-weight-loss', auditStatus:'yes', note:'Merged into Medical Weight Loss — a framing/angle, not a distinct enough search term to justify its own URL'},
+  {id:'express-weight-loss', name:'Express Weight Loss Program', category:'body', standaloneUrl:false, bundledInto:'medical-weight-loss', auditStatus:'yes', note:'Merged into Medical Weight Loss — same reasoning as Inch Loss'},
 ];
 const LOCATIONS = [
   {id:'haralur-road', name:'Haralur Road (main clinic)'},
@@ -1003,6 +1003,14 @@ function renderTreatments(main){
     main.appendChild(el('h3', {style:'font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin:28px 0 10px;'}, cat.name+' ('+inCat.length+')'));
 
   inCat.forEach(t=>{
+    if(t.standaloneUrl === false){
+      const parent = TREATMENTS.find(x=>x.id===t.bundledInto);
+      const mergedCard = el('div', {class:'card', style:'opacity:.75;'});
+      mergedCard.appendChild(el('div', {class:'card-head'}, el('h3',{style:'font-size:15px;'}, t.name), el('span',{class:'status-pill'}, 'Merged')));
+      mergedCard.appendChild(el('div',{style:'font-size:13px;color:var(--ink-2);'}, '→ Folded into '+(parent?parent.name:t.bundledInto)+(t.note?' — '+t.note:'')));
+      main.appendChild(mergedCard);
+      return;
+    }
     const d = state.treatments[t.id] || {};
     const card = el('div', {class:'card'});
     const filled = ['sessionCount','description'].filter(k=>fieldFilled(d[k])).length;
