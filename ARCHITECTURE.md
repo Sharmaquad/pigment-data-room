@@ -56,3 +56,25 @@ Known real gap, not a sourcing failure: **zero real 5-star reviews exist for Bod
 ## SEO auditing
 
 A repeatable audit checklist exists as a Claude Code skill (`~/.claude/skills/pigment-seo-audit/`, user-level — available in any session via `/pigment-seo-audit`). It covers 9 categories: image SEO, PageSpeed/Core Web Vitals, on-page content, technical SEO/schema, local SEO, keyword strategy, backlinks, analytics, accessibility. Intended to run against the real site once it's live, not the current placeholder state.
+
+## Known open gaps (not yet resolved, don't assume they're fixed)
+
+- **Neither doctor has a photo on file** in the `doctors` collection, despite the real photos existing on the live `/about-us/` page (confirmed via screenshot: Dr. Namitha's photo is genuinely there). Never resolved to a definitive doctor→photo mapping — flagged twice in this project, still open.
+- **Before/after gallery has only 2 real pairs** against 64 treatment pages. Cannot be fabricated — needs real, consented patient photos from the clinic.
+- **Google Reviews has zero coverage for Body & Wellness / Aesthetics** (see above) — a real content gap, not a task left undone.
+- **7 treatments still marked "Not offered"** in the live Audit as of last check: Hair Transplant, Hair Thread Treatment, DermaFrac, Fire & Ice Facial, Foaming Enzyme Facial, HydraGeneo Facial, plus whichever else — check the Audit tab for the current live list, this drifts as the owner answers more.
+- **Verification status:** as of this writing, almost nothing has been formally Verified in the Data Room (5 of 76 blog posts; 0 elsewhere) even though content is drafted and real. Verification is real review work, not a formality — don't treat a high draft-count as equivalent to launch-readiness.
+
+## Image SEO — required before any page goes live
+
+Every image currently in the Data Room is a **hotlinked Pexels URL**, not self-hosted. This was the right call for fast, honest drafting (real, verified photos, zero fabrication risk) but is **not launch-ready**. Before publishing, every image needs: (1) downloading and re-hosting on the clinic's own domain/media library — hotlinking ties page speed to Pexels' server and gives Pexels the Google Images search credit, not the clinic; (2) a descriptive, keyword-relevant filename (not `pexels-photo-19239114.jpeg`); (3) real alt text naming the treatment/context. This is explicit, standing owner instruction — "naming of the images also has to be done by you before it goes live on WordPress." Not yet started as of this writing.
+
+Recommended tooling for ongoing compression once past this one-time re-hosting pass: a WordPress plugin (ShortPixel or Imagify) rather than a third-party image CDN service (ImageKit/Cloudinary/imgix) — the site's scale (a few hundred images, Bangalore-local traffic) doesn't justify a dedicated image CDN's cost/complexity.
+
+## Publishing pipeline — the plan going forward
+
+Decided approach: **one real Elementor template first, then scale**, not 55 individually-built pages. The owner will grant **WordPress REST API access** (an Application Password, generated from WP Admin → Users → Profile → Application Passwords) so content can be pushed programmatically and reliably, rather than by clicking through Elementor's visual builder 55 times — the same "script it, don't click it" pattern already used for all the Firestore migrations in this project.
+
+Sequencing: (1) design and get sign-off on one treatment-page template — content structure is already proven (Meta description / Intro / Signs / Causes / Treatment options / What to expect / FAQ / Internal links / Images), the open question is visual layout; (2) build that template in Elementor by hand once, so it exists as a real, reusable page structure; (3) use the REST API to populate new pages against that template; (4) supervised rollout, not fully autonomous bulk publishing — this is live, public, customer-facing content, a different risk tier from everything built in the Data Room sandbox so far.
+
+Design direction default (pending explicit confirmation): **extend the existing Pigment brand** (cream/gold palette, "Glowing Confidence" identity) rather than a full visual overhaul — the brand already has equity, and consistency across 55+ near-identical page types matters more than novelty per-page.
