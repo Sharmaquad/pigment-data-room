@@ -1168,37 +1168,71 @@ function tagLabel(tag){
 // ============================================================
 function renderFaqs(main){
   main.appendChild(el('h2', {}, 'Sitewide FAQs'));
-  main.appendChild(el('p', {class:'section-dek'}, 'Feeds the /faq hub and FAQPage schema — the cheapest way to appear in "People Also Ask" and get cited by AI answer engines. Tag each FAQ so it also surfaces on the treatment, doctor, or location page it actually belongs to, not just the sitewide hub. Aim for at least 8–10 real patient questions.'));
+  main.appendChild(el('p', {class:'section-dek'}, 'Feeds the /faq hub and FAQPage schema. Grouped by page below to match how this should actually appear live: one "full page" link per group — not a repeated link after every single answer, which would read as robotic. Each FAQ also carries its own cross-link suggestions (other FAQs/pages it should reference) for whoever builds the real page — check "Internal linking verified" once you\'ve confirmed those are the right calls.'));
 
-  const card = el('div', {class:'card'});
-  if(state.faqs.length===0){
-    card.appendChild(el('div',{class:'empty-state'}, 'No FAQs yet — add the first one below.'));
-  }
-  state.faqs.forEach((f,i)=>{
-    const item = el('div', {class:'list-item'});
-    item.appendChild(el('label',{},'Question '+(i+1)));
-    const q = el('input',{type:'text'}); q.value=f.question||''; q.addEventListener('input',()=>{f.question=q.value; f.verified=false;});
-    item.appendChild(q);
-    item.appendChild(el('label',{},'Answer'));
-    const a = el('textarea',{}); a.value=f.answer||''; a.addEventListener('input',()=>{f.answer=a.value; f.verified=false;});
-    item.appendChild(a);
-    item.appendChild(el('label',{},'Tag — which page should this also appear on'));
-    item.appendChild(buildTagSelect(f.tag||'', (v)=>{ f.tag=v; f.verified=false; }));
-    item.appendChild(el('div',{class:'btn-row'},
-      el('button',{class:'btn primary', onclick: async ()=>{ await saveDoc('faqs', f.id, f); renderTabs(); renderProgress(); }}, 'Save'),
-      el('button',{class:'btn danger', onclick: async ()=>{ await removeDoc('faqs', f.id); state.faqs.splice(i,1); render(); }}, 'Delete')
-    ));
-    renderVerifyBar(item, f, 'faqs', f.id, ()=>f);
-    card.appendChild(item);
+  const groups = [{tag:'', label:'General / clinic-wide', items:[]}];
+  TREATMENTS.forEach(t=> groups.push({tag:'treatment:'+t.id, label:t.name, items:[]}));
+  DOCTORS.forEach(d=> groups.push({tag:'doctor:'+d.id, label:d.name, items:[]}));
+  LOCATIONS.forEach(l=> groups.push({tag:'location:'+l.id, label:l.name, items:[]}));
+  const groupByTag = {}; groups.forEach(g=> groupByTag[g.tag]=g);
+  state.faqs.forEach(f=>{
+    const g = groupByTag[f.tag||''];
+    if(g) g.items.push(f); else groups[0].items.push(f);
   });
-  card.appendChild(el('div',{class:'add-row'}, el('button',{class:'btn', onclick: async ()=>{
+
+  if(state.faqs.length===0){
+    const card = el('div', {class:'card'});
+    card.appendChild(el('div',{class:'empty-state'}, 'No FAQs yet — add the first one below.'));
+    main.appendChild(card);
+  }
+
+  groups.filter(g=>g.items.length).forEach(g=>{
+    main.appendChild(el('h3', {style:'font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin:24px 0 8px;'}, g.label+' ('+g.items.length+')'));
+    if(g.tag){
+      main.appendChild(el('p', {style:'font-size:12.5px;color:var(--ink-3);margin:-4px 0 10px;'}, '→ One link to the full page goes here, once — not repeated per question below.'));
+    }
+    const card = el('div', {class:'card'});
+    g.items.forEach((f)=>{
+      const item = el('div', {class:'list-item'});
+      item.appendChild(el('label',{},'Question'));
+      const q = el('input',{type:'text'}); q.value=f.question||''; q.addEventListener('input',()=>{f.question=q.value; f.verified=false;});
+      item.appendChild(q);
+      item.appendChild(el('label',{},'Answer'));
+      const a = el('textarea',{}); a.value=f.answer||''; a.addEventListener('input',()=>{f.answer=a.value; f.verified=false;});
+      item.appendChild(a);
+      item.appendChild(el('label',{},'Tag — which page should this also appear on'));
+      item.appendChild(buildTagSelect(f.tag||'', (v)=>{ f.tag=v; f.verified=false; render(); }));
+
+      item.appendChild(el('label',{},'Cross-links (other FAQs/treatments this should reference — natural inline mentions when the page is built, not a literal "see also" sentence)'));
+      const cl = el('textarea',{}); cl.style.minHeight='50px'; cl.value=f.crossLinks||''; cl.addEventListener('input',()=>{f.crossLinks=cl.value; f.linkingVerified=false;});
+      item.appendChild(cl);
+
+      const linkLabel = el('label',{style:'display:flex;align-items:center;gap:8px;font-family:var(--font-body);text-transform:none;font-size:13px;color:var(--ink-2);margin-top:6px;'});
+      const lcb = el('input',{type:'checkbox'}); lcb.checked = !!f.linkingVerified; lcb.style.width='auto';
+      lcb.addEventListener('change',()=>{ f.linkingVerified=lcb.checked; });
+      linkLabel.appendChild(lcb);
+      linkLabel.appendChild(document.createTextNode('Internal linking verified — the cross-links above are the right calls'));
+      item.appendChild(linkLabel);
+
+      item.appendChild(el('div',{class:'btn-row'},
+        el('button',{class:'btn primary', onclick: async ()=>{ await saveDoc('faqs', f.id, f); renderTabs(); renderProgress(); }}, 'Save'),
+        el('button',{class:'btn danger', onclick: async ()=>{ await removeDoc('faqs', f.id); state.faqs = state.faqs.filter(x=>x.id!==f.id); render(); }}, 'Delete')
+      ));
+      renderVerifyBar(item, f, 'faqs', f.id, ()=>f);
+      card.appendChild(item);
+    });
+    main.appendChild(card);
+  });
+
+  const addCard = el('div', {class:'card', style:'margin-top:20px;'});
+  addCard.appendChild(el('div',{class:'add-row'}, el('button',{class:'btn', onclick: async ()=>{
     const id = 'f'+Date.now();
-    const f = {id, question:'', answer:'', tag:'', origin:'human', verified:false};
+    const f = {id, question:'', answer:'', tag:'', crossLinks:'', linkingVerified:false, origin:'human', verified:false};
     state.faqs.push(f);
     await saveDoc('faqs', id, f);
     render();
   }}, '+ Add FAQ')));
-  main.appendChild(card);
+  main.appendChild(addCard);
 }
 
 // ============================================================
