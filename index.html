@@ -2095,15 +2095,11 @@ async function init(){
 
     const faqsSnap = await getDocs(collection(firestore,'faqs'));
     state.faqs = faqsSnap.docs.map(d=>({id:d.id, ...d.data()}));
-    const existingQuestions = new Set(state.faqs.map(f=>(f.question||'').trim().toLowerCase()));
-    for(const f of SEED.faqs){
-      if(!existingQuestions.has(f.question.trim().toLowerCase())){
-        const id = 'f'+Math.random().toString(36).slice(2,10);
-        const docData = {id, question:f.question, answer:f.answer, origin:f.origin||'ai-drafted', verified:false};
-        state.faqs.push(docData);
-        await saveDoc('faqs', id, docData);
-      }
-    }
+    // NOTE: the old SEED.faqs fallback-reseed loop that used to live here has been
+    // removed — it was silently re-inserting the original copy-pasted-from-the-
+    // live-site FAQ set every time the app loaded with fewer than 20 questions
+    // present, which undid the independent FAQ rebuild. The faqs collection is
+    // now real, complete content on its own; it doesn't need a fallback seed.
 
     const testSnap = await getDocs(collection(firestore,'testimonials'));
     state.testimonials = testSnap.docs.map(d=>({id:d.id, ...d.data()}));
