@@ -2107,6 +2107,10 @@ async function init(){
     const orgSnap = await getDoc(docRef('orgInfo','main'));
     state.org = await mergeSeed('orgInfo','main', orgSnap.exists() ? orgSnap.data() : null, SEED.org);
 
+    const doctorsSnap = await getDocs(collection(firestore,'doctors'));
+    doctorsSnap.forEach(d=>{
+      if(!DOCTORS.find(x=>x.id===d.id)) DOCTORS.push({id:d.id, name:d.data().name || d.id});
+    });
     for(const doc of DOCTORS){
       const snap = await getDoc(docRef('doctors', doc.id));
       state.doctors[doc.id] = await mergeSeed('doctors', doc.id, snap.exists() ? snap.data() : null, SEED.doctors[doc.id] || {}, {name:doc.name});
