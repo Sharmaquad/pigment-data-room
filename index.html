@@ -2025,6 +2025,36 @@ document.addEventListener('focusout', ()=>{
   }, 60);
 });
 
+// AUTOSAVE ON BLUR. Fields only edit an in-memory copy of the record; the card's
+// Save button is what persists it. Two ways that lost work: (1) a server
+// snapshot arriving while you typed replaced the in-memory copy and the
+// deferred re-render above wiped your text the moment you clicked away —
+// often before the click on Save could land; (2) simply refreshing without
+// clicking Save. So: the moment a field you changed loses focus, click that
+// card's own Save button for you, before any re-render can happen.
+const dirtyFields = new Set();
+function markDirty(e){
+  const t = e.target;
+  if(!t || !t.matches || !t.matches('input,textarea,select') || t.type==='file') return;
+  if(!t.closest('.card,.list-item')) return;
+  dirtyFields.add(t);
+  syncStatusEl.textContent = 'Unsaved changes — saving when you click away';
+  syncStatusEl.style.color = 'var(--warn)';
+}
+document.addEventListener('input', markDirty, true);
+document.addEventListener('change', markDirty, true);
+document.addEventListener('focusout', (e)=>{
+  const t = e.target;
+  if(!dirtyFields.has(t)) return;
+  dirtyFields.delete(t);
+  const scope = t.closest('.list-item') || t.closest('.card');
+  const saveBtn = scope && Array.from(scope.querySelectorAll('button')).find(b=>b.textContent.trim()==='Save');
+  if(saveBtn) saveBtn.click();
+}, true);
+window.addEventListener('beforeunload', (e)=>{
+  if(dirtyFields.size){ e.preventDefault(); e.returnValue = ''; }
+});
+
 function attachLiveListeners(){
   onSnapshot(docRef('orgInfo','main'), (snap)=>{
     if(snap.metadata.hasPendingWrites) return;
